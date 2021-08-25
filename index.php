@@ -15,36 +15,37 @@ class MYPDF extends TCPDF {
         $this->Cell(0, 10, $this->getAliasNumPage(), 0, false, 'C', 0, '', 0, false, 'T', 'M');
     }
 
-    public function CustomTitle($text, $font, $size, $align = 'C', $color = array(0, 0, 0)) {
+    public function ConfigDefault() {
+        $fontDefault = TCPDF_FONTS::addTTFfont('font/SVN-Arial/SVN-Arial 2.ttf');
+        $this->SetTextColor(0, 0, 0);
+        $this->SetFont($fontDefault, '', 12);
+    }
+
+    public function CustomTitle($text, $font, $size, $align = 'C', $color = array(0, 0, 0), $backDefault = true) {
         $this->SetTextColor($color[0], $color[1], $color[2]);
         $this->SetFont($font, 'B', $size);
         $this->Write(0, $text, '', 0, $align, true, 0, false, false, 0);
-        $this->SetTextColor(0, 0, 0);
-        $this->SetFont($font, '', 12);
+
+        if($backDefault) 
+            $this->ConfigDefault();
     }
 
-    public function CellImageBorder($img, $img_type, $txt, $h, $w, $x, $y, $font, $color='') {
+    public function CellImageBorder($img, $img_type, $txt, $h, $w, $x, $y, $font, $colorTxt = array(0, 0, 0)) {
         $this->setCellPaddings(8, 5, 1, 1);
-        // $pdf->setCellMargins(1, 1, 1, 1);
         $this->SetLineStyle(array('width' => 0.4, 'cap' => 'butt', 'join' => 'miter', 'dash' => 0, 'color' => array(0, 0, 0)));
         $this->SetFont($font, 'B', 16);
-        if ($color === 'yellow') {
-            $this->SetTextColor(0, 0, 100, 0);
-        } elseif ($color === 'white') {
-            $this->SetTextColor(0, 0, 0, 10);
-        } elseif ($color === 'red') {
-            $this->SetTextColor(0, 100, 100, 25);
-        } else {
-            $this->SetTextColor(0, 0, 0);
-        }
+        $this->SetTextColor($colorTxt[0], $colorTxt[1], $colorTxt[2]);
         $this->Image($img.'.'.$img_type, $x, $y, $h, $w, 'PNG', '', '', true, 300, '', false, false, 0, false, false, false);
         $this->RoundedRect($x, $y, $h, $w, 5.4, '1111');
         $this->MultiCell($h, $w, $txt, 0, 'C', 0, 1, $x-2, $y-2, true);
         $this->setCellPaddings(1, 1, 1, 1);
     }
 
-    public function PrintBgFullPage($bgImg) {
+    public function PrintBgFullPage($bgImg, $bookMark = false, $txt = '', $level = 0, $page = '', $color = array(0,0,0)) {
         $this->AddPage();
+        if($bookMark) 
+            $this->Bookmark($txt, $level, 0, $page, 'B', $color);
+
         $this->setPrintFooter(false);
         // $pdf->Image('image/book.jpg', 0, 0, 0, 0, 'JPG', '', '', true);
         $bMargin = $this->getBreakMargin();
@@ -53,21 +54,21 @@ class MYPDF extends TCPDF {
         // disable auto-page-break
         $this->SetAutoPageBreak(false, 0);
         // set background image
-        $this->Image($bgImg, -1, 0, 220, 279.5, '', '', '', false, 300, '', false, false, 0);
+        $this->Image($bgImg, -1, 0, 218, 279.5, '', '', '', false, 300, '', false, false, 0);
         // restore auto-page-break status
         $this->SetAutoPageBreak($auto_page_break, $bMargin);
         // set the starting point for the page content
         $this->setPageMark();
     }
 
-    public function ParagraphItalic($text, $font, $size, $style, $color = array(0 ,0 ,0)) {
-        $fontDefault = TCPDF_FONTS::addTTFfont('font/SVN-Arial/SVN-Arial 2.ttf');
+    public function ParagraphItalic($text, $font, $size, $style, $color = array(0 ,0 ,0), $backDefault = true) {
         $this->setCellHeightRatio(1);
         $this->SetTextColor($color[0], $color[1], $color[2]);
         $this->SetFont($font, $style, $size);
         $this->writeHTML($text, true, false, true, false, '');
-        $this->SetTextColor(0, 0, 0);
-        $this->SetFont($fontDefault, '', 12);
+
+        if($backDefault) 
+            $this->ConfigDefault();
     }
 
     public function PrintPart($start, $end, $listTitle, $listContent, $fontTitle, $fontCotent) {
@@ -75,11 +76,16 @@ class MYPDF extends TCPDF {
         $text = '';
         for ($i = $start; $i <= $end; $i++) {
             $this->AddPage();
-            $this->CustomTitle($listTitle[$i], $fontTitle, 18, 'L');
+            $this->Bookmark($listTitle[$i], 1, 0, '', '');
             $text = '<p style="text-align: justify;">'.$listContent[$i].'</p>';
+
+            $this->Image('image/arrow-head.png', 16, 13, strlen($listTitle[$i]) * 2.5  + 30, 25, 'png', '', '', true);
+            $this->setCellPaddings(5, 1, 1, 1);
+            $this->CustomTitle($listTitle[$i], $fontTitle, 18, 'L', array(255, 255, 255), false);
+
             $this->Image('image/sobanmenh'.($i + 1).'.jpg', 0, 40, 220, '', 'JPG', '', '', true, 300, '', false, false, 0, false, false, false);
             $this->Ln($this->getImageRBY()-21);
-            $this->ParagraphItalic($text, $fontCotent, 14, '', array(111,47,159));
+            $this->ParagraphItalic($text, $fontCotent, 14, '', array(111,47,159), false);
             
             if ($i != $end) {
                 $this->AddPage();
@@ -111,6 +117,7 @@ $pdf->SetMargins(25, 20, 18, true);
 $font = TCPDF_FONTS::addTTFfont('font/SVN-Arial/SVN-Arial 2.ttf');
 $font_italic = TCPDF_FONTS::addTTFfont('font/SVN-Arial/SVN-Arial 2 italic.ttf');
 $font_IB = TCPDF_FONTS::addTTFfont('font/SVN-Arial/SVN-Arial 2 bold italic.ttf');
+$bungee_shade = TCPDF_FONTS::addTTFfont('font/BungeeShade/BungeeShade-Regular.ttf');
 $pdf->SetFont($font, '', 12);
 $pdf->setCellHeightRatio(1.4);
 // $pdf->SetTextColor();
@@ -256,22 +263,7 @@ $pdf->PrintBgFullPage('image/book.jpg');
 
 // ------------------------------- BEGIN PAGE 4 ------------------------------------
 // --------------------------------  MUC LUC  --------------------------------------
-$pdf->addTOCPage();
-$pdf->setPrintFooter(true);
-$pdf->Image('image/background.jpg', 49, 55, 119.1, 152.9, 'JPG', '', '', true, 200, '', false, false, 0, false, false, true);
-// write the TOC title
-$pdf->SetFont($font, 'B', 22);
-$pdf->MultiCell(0, 0, 'mục lục', 0, 'C', 0, 1, '', '', true, 0);
-$pdf->Ln();
 
-$pdf->SetFont($font, '', 12);
-
-// add a simple Table Of Content at first page
-// (check the example n. 59 for the HTML version)
-$pdf->addTOC(4, 'courier', '.', 'INDEX', 'B', array(128,0,0));
-
-// end of TOC page
-$pdf->endTOCPage();
 
 // ------------------------------- END PAGE 4 --------------------------------------
 // ---------------------------------------------------------------------------------
@@ -283,11 +275,11 @@ $pdf->endTOCPage();
 // ---------------------------------------------------------------------------------
 
 $pdf->AddPage();
-$pdf->Bookmark('Lời mở đầu', 1, 100, '', '', array(128,0,0));
+$pdf->Bookmark('Lời mở đầu', 0, 0, '', 'B', array(0,0,0));
 
 $pdf->Image('image/foreword-img.png', 0, 190, 220, 69.3, 'PNG', '', '', true, 200, '', false, false, 0, false, false, false);
 $pdf->Image('image/background.jpg', 49, 55, 119.1, 152.9, 'JPG', '', '', true, 200, '', false, false, 0, false, false, true);
-$pdf->CustomTitle('LỜI MỞ ĐẦU', $font, 30, 'C', array(88,12,109));
+$pdf->CustomTitle('LỜI MỞ ĐẦU', $bungee_shade, 30, 'C', array(88,12,109));
 $pdf->Ln(5, false);
 
 
@@ -336,9 +328,9 @@ $pdf->writeHTML($html, true, false, true, false,'R');
 // ------------------------------- BEGIN PAGE 6 ------------------------------------
 // ---------------------------------------------------------------------------------
 $pdf->AddPage();
-$pdf->Bookmark('Tổng quan về năng lượng số', 1, 0, '', '', array(128,0,0));
-$pdf->CustomTitle('TỔNG QUAN VỀ NĂNG', $font, 30, 'C', array(88,12,109));
-$pdf->CustomTitle('LƯỢNG SỐ', $font, 30, 'C', array(88,12,109));
+$pdf->Bookmark('Tổng quan về năng lượng số', 0, 0, '', '', array(0,0,0));
+$pdf->CustomTitle('TỔNG QUAN VỀ NĂNG', $bungee_shade, 30, 'C', array(88,12,109));
+$pdf->CustomTitle('LƯỢNG SỐ', $bungee_shade, 30, 'C', array(88,12,109));
 $pdf->Image('image/numer-img-1.jpg', 0, 55, 215.9, 161.6, 'JPG', '', '', true, 200, '', false, false, 0, false, false, false);
 
 // ------------------------------- END PAGE 6 --------------------------------------
@@ -410,18 +402,18 @@ $pdf->writeHTML($html, true, false, true, false,'');
 // ------------------------------- BEGIN PAGE 8 ------------------------------------
 // ---------------------------------------------------------------------------------
 $pdf->AddPage();
-$pdf->CustomTitle('PHẦN 1. BỘ SỐ NỘI LỰC', $font, 30, 'C', array(88,12,109));
+$pdf->CustomTitle('PHẦN 1. BỘ SỐ BẢN MỆNH', $bungee_shade, 30, 'C', array(88,12,109));
 
 $pdf->Image('image/background.jpg', 49, 55, 119.1, 152.9, 'JPG', '', '', true, 200, '', false, false, 0, false, false, true);
 
 $pdf->CellImageBorder('image/bosonoiluc1', 'png', '1. SỐ ĐƯỜNG ĐỜI', 67.3, 40.6, 34, 40, $font);
 $pdf->CellImageBorder('image/bosonoiluc2', 'png', '2. SỐ THÁI ĐỘ', 67.3, 40.6, 115, 40, $font);
 $pdf->CellImageBorder('image/bosonoiluc3', 'png', '3. SỐ NGÀY SINH', 67.3, 40.6, 34, 94, $font);
-$pdf->CellImageBorder('image/bosonoiluc4', 'png', '4. SỐ VẬN MỆNH', 67.3, 40.6, 115, 94, $font, 'yellow');
-$pdf->CellImageBorder('image/bosonoiluc5', 'png', '5. SỐ LINH HỒN', 67.3, 40.6, 34, 149, $font, 'white');
-$pdf->CellImageBorder('image/bosonoiluc6', 'png', '6. SỐ NHÂN CÁCH', 67.3, 40.6, 115, 149, $font, 'yellow');
+$pdf->CellImageBorder('image/bosonoiluc4', 'png', '4. SỐ VẬN MỆNH', 67.3, 40.6, 115, 94, $font, array(255, 255, 0));
+$pdf->CellImageBorder('image/bosonoiluc5', 'png', '5. SỐ LINH HỒN', 67.3, 40.6, 34, 149, $font, array(255, 255, 255));
+$pdf->CellImageBorder('image/bosonoiluc6', 'png', '6. SỐ NHÂN CÁCH', 67.3, 40.6, 115, 149, $font, array(255, 255, 0));
 $pdf->CellImageBorder('image/bosonoiluc7', 'png', '7. SỐ TRƯỞNG THÀNH', 67.3, 40.6, 34, 204, $font);
-$pdf->CellImageBorder('image/bosonoiluc8', 'png', '8. SỐ LẶP', 67.3, 40.6, 115, 204, $font, 'white');
+$pdf->CellImageBorder('image/bosonoiluc8', 'png', '8. SỐ LẶP', 67.3, 40.6, 115, 204, $font, array(255, 255, 255));
 
 
 // ------------------------------- END PAGE 8 --------------------------------------
@@ -433,18 +425,18 @@ $pdf->CellImageBorder('image/bosonoiluc8', 'png', '8. SỐ LẶP', 67.3, 40.6, 1
 // ---------------------------------------------------------------------------------
 
 $pdf->AddPage();
-$pdf->CustomTitle('PHẦN 2. BỘ SỐ NỘI LỰC', $font, 30, 'C', array(88,12,109));
+$pdf->CustomTitle('PHẦN 2. BỘ SỐ NỘI LỰC', $bungee_shade, 30, 'C', array(88,12,109));
 
 $pdf->Image('image/background.jpg', 49, 55, 119.1, 152.9, 'JPG', '', '', true, 200, '', false, false, 0, false, false, true);
 
-$pdf->CellImageBorder('image/bosonoiluc9', 'png', '9. BIỂU ĐỒ NGÀY SINH', 67.3, 40.6, 34, 40, $font, 'yellow');
-$pdf->CellImageBorder('image/bosonoiluc10', 'png', '10. SỐ THIẾU', 67.3, 40.6, 115, 40, $font, 'white');
-$pdf->CellImageBorder('image/bosonoiluc11', 'png', '11. BIỂU ĐỒ VÀ ĐẶC ĐIỂM TÊN', 67.3, 40.6, 34, 94, $font, 'red');
-$pdf->CellImageBorder('image/bosonoiluc12', 'png', '12. SỐ ĐAM MÊ TIỀM ẨN', 67.3, 40.6, 115, 94, $font, 'white');
+$pdf->CellImageBorder('image/bosonoiluc9', 'png', '9. BIỂU ĐỒ NGÀY SINH', 67.3, 40.6, 34, 40, $font, array(255, 255, 0));
+$pdf->CellImageBorder('image/bosonoiluc10', 'png', '10. SỐ THIẾU', 67.3, 40.6, 115, 40, $font, array(255, 255, 255));
+$pdf->CellImageBorder('image/bosonoiluc11', 'png', '11. BIỂU ĐỒ VÀ ĐẶC ĐIỂM TÊN', 67.3, 40.6, 34, 94, $font, array(255, 0, 0));
+$pdf->CellImageBorder('image/bosonoiluc12', 'png', '12. SỐ ĐAM MÊ TIỀM ẨN', 67.3, 40.6, 115, 94, $font, array(255, 255, 255));
 $pdf->CellImageBorder('image/bosonoiluc13', 'png', '13. SỐ CÂN BẰNG', 67.3, 40.6, 34, 149, $font);
-$pdf->CellImageBorder('image/bosonoiluc14', 'png', '14. SỐ AN TOÀN', 67.3, 40.6, 115, 149, $font, 'white');
+$pdf->CellImageBorder('image/bosonoiluc14', 'png', '14. SỐ AN TOÀN', 67.3, 40.6, 115, 149, $font, array(255, 255, 255));
 $pdf->CellImageBorder('image/bosonoiluc15', 'png', '15. SỐ NGHIỆP QUẢ', 67.3, 40.6, 34, 204, $font);
-$pdf->CellImageBorder('image/bosonoiluc16', 'png', '16. PHẢN HỒI TIỀM THỨC', 67.3, 40.6, 115, 204, $font, 'yellow');
+$pdf->CellImageBorder('image/bosonoiluc16', 'png', '16. PHẢN HỒI TIỀM THỨC', 67.3, 40.6, 115, 204, $font, array(255, 255, 0));
 
 
 
@@ -458,15 +450,15 @@ $pdf->CellImageBorder('image/bosonoiluc16', 'png', '16. PHẢN HỒI TIỀM TH�
 // ---------------------------------------------------------------------------------
 
 $pdf->AddPage();
-$pdf->CustomTitle('PHẦN 3. THÔNG ĐIỆP', $font, 30, 'C', array(88,12,109));
-$pdf->CustomTitle('CUỘC SỐNG', $font, 30, 'C', array(88,12,109));
+$pdf->CustomTitle('PHẦN 3. THÔNG ĐIỆP', $bungee_shade, 30, 'C', array(88,12,109));
+$pdf->CustomTitle('CUỘC SỐNG', $bungee_shade, 30, 'C', array(88,12,109));
 
 $pdf->Image('image/background.jpg', 49, 55, 119.1, 152.9, 'JPG', '', '', true, 300, '', false, false, 0, false, false, true);
 
-$pdf->CellImageBorder('image/bosonoiluc17', 'png', '17. HÀNH TINH', 67.3, 40.6, 34, 70, $font, 'white');
-$pdf->CellImageBorder('image/bosonoiluc18', 'png', '18. CUNG HOÀNG ĐẠO', 67.3, 40.6, 115, 70, $font, 'yellow');
+$pdf->CellImageBorder('image/bosonoiluc17', 'png', '17. HÀNH TINH', 67.3, 40.6, 34, 70, $font, array(255, 255, 255));
+$pdf->CellImageBorder('image/bosonoiluc18', 'png', '18. CUNG HOÀNG ĐẠO', 67.3, 40.6, 115, 70, $font, array(255, 255, 0));
 $pdf->CellImageBorder('image/bosonoiluc19', 'png', '19. CHỈ SỐ HẠNH PHÚC', 67.3, 40.6, 34, 125, $font);
-$pdf->CellImageBorder('image/bosonoiluc20', 'png', '20. TÌNH YÊU', 67.3, 40.6, 115, 125, $font, 'white');
+$pdf->CellImageBorder('image/bosonoiluc20', 'png', '20. TÌNH YÊU', 67.3, 40.6, 115, 125, $font, array(255, 255, 255));
 
 
 // ------------------------------- END PAGE 10 --------------------------------------
@@ -477,18 +469,17 @@ $pdf->CellImageBorder('image/bosonoiluc20', 'png', '20. TÌNH YÊU', 67.3, 40.6,
 // ---------------------------------------------------------------------------------
 
 $pdf->AddPage();
-
-$pdf->CustomTitle('PHẦN 4. HÀNH TRÌNH', $font, 30, 'C', array(88,12,109));
-$pdf->CustomTitle('CUỘC ĐỜI', $font, 30, 'C', array(88,12,109));
+$pdf->CustomTitle('PHẦN 4. HÀNH TRÌNH', $bungee_shade, 30, 'C', array(88,12,109));
+$pdf->CustomTitle('CUỘC ĐỜI', $bungee_shade, 30, 'C', array(88,12,109));
 $pdf->Image('image/background.jpg', 49, 55, 119.1, 152.9, 'JPG', '', '', true, 300, '', false, false, 0, false, false, true);
 
 $pdf->CellImageBorder('image/bosonoiluc21', 'png', '21. 3 GIAI ĐOẠN ĐƯỜNG ĐỜI', 67.3, 40.6, 5, 70, $font);
 $pdf->CellImageBorder('image/bosonoiluc22', 'png', '22. CÁC NĂM MỐC QUAN TRỌNG', 67.3, 40.6, 75, 70, $font);
-$pdf->CellImageBorder('image/bosonoiluc23', 'png', '23. NĂM NỔI BẬT', 67.3, 40.6, 145, 70, $font, 'yellow');
+$pdf->CellImageBorder('image/bosonoiluc23', 'png', '23. NĂM NỔI BẬT', 67.3, 40.6, 145, 70, $font, array(255, 255, 0));
 $pdf->CellImageBorder('image/bosonoiluc24', 'png', '24. 4 ĐỈNH CAO', 67.3, 40.6, 5, 125, $font);
 $pdf->CellImageBorder('image/bosonoiluc25', 'png', '25. 4 THÁCH THỨC', 67.3, 40.6, 75, 125, $font);
-$pdf->CellImageBorder('image/bosonoiluc26', 'png', '26. NĂM THẾ GIỚI', 67.3, 40.6, 145, 125, $font, 'white');
-$pdf->CellImageBorder('image/bosonoiluc27', 'png', '27. NĂM CÁ NHÂN', 67.3, 40.6, 5, 180, $font, 'white');
+$pdf->CellImageBorder('image/bosonoiluc26', 'png', '26. NĂM THẾ GIỚI', 67.3, 40.6, 145, 125, $font, array(255, 255, 255));
+$pdf->CellImageBorder('image/bosonoiluc27', 'png', '27. NĂM CÁ NHÂN', 67.3, 40.6, 5, 180, $font, array(255, 255, 255));
 $pdf->CellImageBorder('image/bosonoiluc28', 'png', '28. THÁNG CÁ NHÂN', 67.3, 40.6, 75, 180, $font);
 $pdf->CellImageBorder('image/bosonoiluc29', 'png', '29. NGÀY CÁ NHÂN', 67.3, 40.6, 145, 180, $font);
 
@@ -707,19 +698,19 @@ $list_txt_so_ban_menh = array(
 // ---------------------------------------------------------------------------------
 
 // Phần 1 Bộ số bản mệnh
-$pdf->PrintBgFullPage('image/phan1.jpg');
+$pdf->PrintBgFullPage('image/phan1.jpg', true, 'Phần 1. Bộ số bản mệnh');
 $pdf->PrintPart(0, 7, $title, $list_txt_so_ban_menh, $font, $font_IB);
 
 // Phần 2 Bộ số nội lực
-$pdf->PrintBgFullPage('image/phan2.jpg');
+$pdf->PrintBgFullPage('image/phan2.jpg', true, 'Phần 2. Bộ số nội lực');
 $pdf->PrintPart(8, 15, $title, $list_txt_so_ban_menh, $font, $font_IB);
 
 // Phần 3 Thông điệp cuộc sống
-$pdf->PrintBgFullPage('image/phan3.jpg');
+$pdf->PrintBgFullPage('image/phan3.png', true, 'Phần 3. Thông điệp cuộc sống');
 $pdf->PrintPart(16, 19, $title, $list_txt_so_ban_menh, $font, $font_IB);
 
 // Phần 4 Hành trình cuộc đời
-$pdf->PrintBgFullPage('image/phan4.png');
+$pdf->PrintBgFullPage('image/phan4.png', true, 'Phần 4. Hành trình cuộc đời');
 $pdf->PrintPart(20, 28, $title, $list_txt_so_ban_menh, $font, $font_IB);
 
 // ------------------------------- END PAGE 12 - 70 --------------------------------
@@ -727,12 +718,12 @@ $pdf->PrintPart(20, 28, $title, $list_txt_so_ban_menh, $font, $font_IB);
 
 // Lời kết
 $pdf->AddPage();
-$pdf->CustomTitle('LỜI KẾT', $font, 24, 'C', array(111, 47, 159));
+$pdf->CustomTitle('LỜI KẾT', $bungee_shade, 24, 'C', array(111, 47, 159));
 $pdf->Image('image/background.jpg', 49, 55, 119.1, 152.9, 'JPG', '', '', true, 300, '', false, false, 0, false, false, true);
+$pdf->Ln(5);
 
-$pdf->SetTextColor(111, 47, 159);
 $html = '
-<p style="text-align:justify;>Mỗi con số đều ẩn chứa những nguồn năng lượng 
+<p style="text-align:justify;">Mỗi con số đều ẩn chứa những nguồn năng lượng 
 và những sức mạnh riêng. Nhưng con số không tự kích hoạt năng lượng, mà chúng 
 sẽ được phát triển dựa vào nhận thức và hành động của chúng ta. Nếu bạn không 
 kích hoạt chúng, các con số sẽ trở nên vô nghĩa. Chúng xuất hiện trong cuộc đời 
@@ -750,10 +741,56 @@ những niềm vui cả trên con đường chông gai của mình.
 ';
 $pdf->writeHTML($html, true, false, true, false,'');
 
+$pdf->Ln(5);
 $pdf->SetFont($font_italic, '', 12);
-$html = '
-<p style="text-align:justify;Chúc bạn và gia đình luôn hạnh phúc và bình an!</p>';
+$html = '<p style="text-align:justify;">Chúc bạn và gia đình luôn hạnh phúc và bình an!</p>';
 $pdf->writeHTML($html, true, false, true, false,'');
+
+// ------------------------------- LAST PAGE --------------------------------
+$pdf->AddPage();
+$pdf->SetFont($font, '', 12);
+$pdf->setCellHeightRatio(1.4);
+$pdf->setPrintFooter(false);
+$pdf->SetAutoPageBreak(false, 0);
+$pdf->Image('image/vs-logo.jpg', 165, 20, 35, 35, 'JPG', '', '', true, 300, '', false, false, 0, false, false, true);
+$pdf->Image('image/foreword-img-2.png', 0, 170, 220, 69.3, 'PNG', '', '', true, 200, '', false, false, 0, false, false, false);
+$pdf->Image('image/background.jpg', 60, 55, 100, 130, 'JPG', '', '', true, 300, '', false, false, 0, false, false, true);
+$pdf->Image('image/ios-qr.png', 108, 245, 108, '', 'png', '', '', true, 300, '', false, false, 0, false, false, false);
+$pdf->Image('image/android-qr.png', 0, 245, 108, '', 'png', '', '', true, 300, '', false, false, 0, false, false, false);
+
+$html = '<p style="font-size: 16px"><b>Công ty Cổ phần Khởi Nghiệp Việt<br/>
+Email: vstartup@gmail.com<br/>
+numerologyleo@gmail.com<br/>
+SĐT: 0901.508.999 - 0867.880.577<b/></p>';
+
+$pdf->writeHTML($html, true, false, true, false,'');
+$pdf->Ln(165);
+
+$html = 'Quét mã cài đặt app';
+$pdf->SetFont($font, 'B', 28);
+$pdf->Write(0, $html, '', false, 'C', true);
+
+// --------------------------------------------------------------------------
+
+// --------------------------------- mục lục --------------------------------
+$pdf->addTOCPage();
+$pdf->setPrintFooter(true);
+$pdf->Image('image/background.jpg', 49, 55, 119.1, 152.9, 'JPG', '', '', true, 200, '', false, false, 0, false, false, true);
+// write the TOC title
+$pdf->SetFont($bungee_shade, 'B', 22);
+$pdf->SetTextColor(array(88,12,109));
+$pdf->MultiCell(0, 0, 'MỤC LỤC', 0, 'C', 0, 1, '', '', true, 0);
+
+$pdf->SetFont($font, '', 12);
+
+// add a simple Table Of Content at first page
+// (check the example n. 59 for the HTML version)
+$pdf->addTOC(4, 'courier', '.', 'INDEX', 'B', array(128,0,0));
+
+// end of TOC page
+$pdf->endTOCPage();
+
+// --------------------------------------------------------------------------
 
 //out put
 $pdf->Output();

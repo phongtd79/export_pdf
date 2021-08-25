@@ -15,11 +15,12 @@ class MYPDF extends TCPDF {
         $this->Cell(0, 10, $this->getAliasNumPage(), 0, false, 'C', 0, '', 0, false, 'T', 'M');
     }
 
-    public function CustomTitle2($text, $font, $size) {
+    public function CustomTitle($text, $font, $size, $align = 'C', $color = array(0, 0, 0)) {
         $fontDefault = TCPDF_FONTS::addTTFfont('font/SVN-Arial/SVN-Arial 2.ttf');
-        $this->SetTextColor(88,12,109);
+        $this->SetTextColor($color[0], $color[1], $color[2]);
         $this->SetFont($font, 'B', $size);
-        $this->Write(0, $text, '', 0, 'L', true, 1, false, false);
+        $this->setCellPaddings(5);
+        $this->Write(0, $text, '', 0, $align, true, 0, false, false, 0, 0);
         $this->SetTextColor(0, 0, 0);
         $this->SetFont($fontDefault, '', 12);
     }
@@ -139,11 +140,32 @@ $pdf->setCellHeightRatio(1.4);
 
 
 
+
+
 $pdf->AddPage();
-$pdf->SetFont($font_italic, '', 12);
-// $pdf->SetTextColor(0,0,0);
-$html = '<p style="text-align:justify;Chúc bạn và gia đình luôn hạnh phúc và bình an!</p>';
+$pdf->Bookmark('Chapter 1', 0, 0, '', 'B', array(0,64,128));
+$pdf->SetFont($font, '', 12);
+$pdf->setPrintFooter(false);
+$pdf->SetAutoPageBreak(false, 0);
+$pdf->Image('image/vs-logo.jpg', 165, 20, 35, 35, 'JPG', '', '', true, 300, '', false, false, 0, false, false, true);
+$pdf->Image('image/foreword-img-2.png', 0, 170, 220, 69.3, 'PNG', '', '', true, 200, '', false, false, 0, false, false, false);
+$pdf->Image('image/background.jpg', 60, 55, 100, 130, 'JPG', '', '', true, 300, '', false, false, 0, false, false, true);
+$pdf->Image('image/ios-qr.png', 108, 245, 108, '', 'png', '', '', true, 300, '', false, false, 0, false, false, false);
+$pdf->Image('image/android-qr.png', 0, 245, 108, '', 'png', '', '', true, 300, '', false, false, 0, false, false, false);
+
+$html = '<p style="font-size: 16px"><b>Công ty Cổ phần Khởi Nghiệp Việt<br/>
+Email: vstartup@gmail.com<br/>
+numerologyleo@gmail.com<br/>
+SĐT: 0901.508.999 - 0867.880.577<b/></p>';
+
 $pdf->writeHTML($html, true, false, true, false,'');
+$pdf->Ln(165);
+
+$html = 'Quét mã cài đặt app';
+$pdf->SetFont($font, 'B', 28);
+$pdf->Write(0, $html, '', false, 'C', true);
+
+
 
 
 
@@ -191,22 +213,22 @@ $pdf->writeHTML($html, true, false, true, false,'');
 
 // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-// add a new page for TOC
-// $pdf->addTOCPage();
 
-// // write the TOC title
-// $pdf->SetFont('times', 'B', 16);
-// $pdf->MultiCell(0, 0, 'Table Of Content', 0, 'C', 0, 1, '', '', true, 0);
-// $pdf->Ln();
+$pdf->addTOCPage();
 
-// $pdf->SetFont('dejavusans', '', 12);
+// write the TOC title
+$pdf->SetFont('times', 'B', 16);
+$pdf->MultiCell(0, 0, 'Table Of Content', 0, 'C', 0, 1, '', '', true, 0);
+$pdf->Ln();
 
-// // add a simple Table Of Content at first page
-// // (check the example n. 59 for the HTML version)
-// $pdf->addTOC(1, 'courier', '.', 'INDEX', 'B', array(128,0,0));
+$pdf->SetFont('dejavusans', '', 12);
 
-// // end of TOC page
-// $pdf->endTOCPage();
+// add a simple Table Of Content at first page
+// (check the example n. 59 for the HTML version)
+$pdf->addTOC(1, 'courier', '.', 'INDEX', 'B', array(128,0,0));
+
+// end of TOC page
+$pdf->endTOCPage();
 
 
 $pdf->Output();
