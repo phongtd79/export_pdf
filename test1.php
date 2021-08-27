@@ -1,6 +1,11 @@
 <?php 
 
 include('lib/TCPDF/tcpdf.php');
+include('data.php');
+
+
+
+
 class MYPDF extends TCPDF {
     // Page footer
     
@@ -11,7 +16,12 @@ class MYPDF extends TCPDF {
         // Set font
         $this->SetFont($fontDefault, '', 12);
         // Page number
-        $this->Cell(0, 10, 'Numerology - Năng lượng số', 0, false, 'C', 0, '', 0, false, 'T', 'M');
+        // $style = array('width' => 2, 'cap' => 'butt', 'join' => 'miter', 'dash' => 0, 'color' => array(0, 0, 0));
+        $style = array(
+            'T' => array('width' => 0.2, 'cap' => 'butt', 'join' => 'miter', 'dash' => 0, 'color' => array(0, 0, 0)),
+            
+         );
+        $this->Cell(0, 10, 'Numerology - Năng lượng số', $style, false, 'C', 0, '', 0, false, 'T', 'M');
         $this->Cell(0, 10, $this->getAliasNumPage(), 0, false, 'C', 0, '', 0, false, 'T', 'M');
     }
 
@@ -98,44 +108,44 @@ $pdf->setCellHeightRatio(1.4);
 
 
 // $pdf->AddPage();
-// $title = array(
-//     "1. Số Đường Đời",
-//     "2. Số Thái Độ",
-//     "3. Số Ngày Sinh",
-//     "4. Số Vận Mệnh",
-//     "5. Số Linh Hồn",
-//     "6. Số Nhân Cách",
-//     "7. Số Trưởng Thành",
-//     "8. Số Lặp",
-// );
+$title = array(
+    "1. Số Đường Đời",
+    "2. Số Thái Độ",
+    "3. Số Ngày Sinh",
+    "4. Số Vận Mệnh",
+    "5. Số Linh Hồn",
+    "6. Số Nhân Cách",
+    "7. Số Trưởng Thành",
+    "8. Số Lặp",
+);
 
-// $text = "
-// <p style='text-align: justify;'><b>Con số đường đời được tính toán dựa trên ngày sinh dương lịch của 
-// chúng ta (giống như biểu đồ ngày sinh trong chiêm tinh), vì vậy chúng ta có 
-// thể coi con số đường đời như một loại dấu hiệu hoàng đạo của Năng lượng số. 
-// Những con số này nói lên giá trị cốt lõi, phương thức hoạt động và sứ mệnh tổng 
-// thể của chúng ta trong cuộc sống. Mỗi con số được liên kết với những phẩm chất, 
-// điểm mạnh và điểm yếu duy nhất - và chúng được cho là có ý nghĩa sâu sắc và có ảnh 
-// hưởng lớn đến các con đường của chúng ta trong cuộc sống</b></p>
-// ";
+$text = "
+<p style='text-align: justify;'><b>Con số đường đời được tính toán dựa trên ngày sinh dương lịch của 
+chúng ta (giống như biểu đồ ngày sinh trong chiêm tinh), vì vậy chúng ta có 
+thể coi con số đường đời như một loại dấu hiệu hoàng đạo của Năng lượng số. 
+Những con số này nói lên giá trị cốt lõi, phương thức hoạt động và sứ mệnh tổng 
+thể của chúng ta trong cuộc sống. Mỗi con số được liên kết với những phẩm chất, 
+điểm mạnh và điểm yếu duy nhất - và chúng được cho là có ý nghĩa sâu sắc và có ảnh 
+hưởng lớn đến các con đường của chúng ta trong cuộc sống</b></p>
+";
 
-// $serial = 0;
+$serial = 0;
 
-// for ($i = 1; $i <= 15; $i++) {
-//     $pdf->AddPage();
+for ($i = 1; $i <= 15; $i++) {
+    $pdf->AddPage();
     
-//     if ($i % 2 != 0) {
-//         $pdf->CustomTitle2($title[$serial], $font, 18);
-//         $serial++;
-//         $pdf->Image('image/sobanmenh'.$serial.'.jpg', 0, 40, 220, '', 'JPG', '', '', true, 300, '', false, false, 0, false, false, false);
-//         $pdf->Ln($pdf->getImageRBY()-22);
-//         $pdf->ParagraphItalic($text, $font_italic, 14, '', array(0,0,0));
+    if ($i % 2 != 0) {
+        $pdf->CustomTitle($title[$serial], $font, 18);
+        $serial++;
+        $pdf->Image('image/sobanmenh'.$serial.'.jpg', 0, 40, 220, '', 'JPG', '', '', true, 300, '', false, false, 0, false, false, false);
+        $pdf->Ln($pdf->getImageRBY()-22);
+        $pdf->ParagraphItalic($text, $font_italic, 14, '', array(0,0,0));
  
-//         // $pdf->Image('image/background.jpg', 49, 55, 119.1, 152.9, 'JPG', '', '', true, 300, '', false, false, 0, false, false, true);
-//     } else {
-//         // $pdf->Image('image/background.jpg', 49, 55, 119.1, 152.9, 'JPG', '', '', true, 300, '', false, false, 0, false, false, true);
-//     }   
-// }
+        // $pdf->Image('image/background.jpg', 49, 55, 119.1, 152.9, 'JPG', '', '', true, 300, '', false, false, 0, false, false, true);
+    } else {
+        // $pdf->Image('image/background.jpg', 49, 55, 119.1, 152.9, 'JPG', '', '', true, 300, '', false, false, 0, false, false, true);
+    }   
+}
 
 
 

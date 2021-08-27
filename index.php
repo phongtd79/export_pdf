@@ -1,6 +1,6 @@
 <?php 
 include('lib/TCPDF/tcpdf.php');
-
+include('data.php');
 class MYPDF extends TCPDF {
     // Page footer
     
@@ -10,38 +10,43 @@ class MYPDF extends TCPDF {
         $this->SetY(-20);
         // Set font
         $this->SetFont($font, '', 12);
+        $style = array(
+            'T' => array('width' => 0.2, 'cap' => 'butt', 'join' => 'miter', 'dash' => 0, 'color' => array(0, 0, 0)),
+        );
         // Page number
-        $this->Cell(0, 10, 'Numerology - Năng lượng số', 0, false, 'C', 0, '', 0, false, 'T', 'M');
+        $this->Cell(0, 10, 'Numerology - Năng lượng số', $style, false, 'C', 0, '', 0, false, 'T', 'M');
         $this->Cell(0, 10, $this->getAliasNumPage(), 0, false, 'C', 0, '', 0, false, 'T', 'M');
     }
 
-    public function ConfigDefault() {
-        $fontDefault = TCPDF_FONTS::addTTFfont('font/SVN-Arial/SVN-Arial 2.ttf');
+    public function configDefault() {
+        $font_default = TCPDF_FONTS::addTTFfont('font/SVN-Arial/SVN-Arial 2.ttf');
         $this->SetTextColor(0, 0, 0);
-        $this->SetFont($fontDefault, '', 12);
+        $this->SetFont($font_default, '', 12);
     }
 
-    public function CustomTitle($text, $font, $size, $align = 'C', $color = array(0, 0, 0), $backDefault = true) {
+    public function customTitle($text, $font, $size, $align = 'C', $color = array(0, 0, 0), $back_default = true) {
         $this->SetTextColor($color[0], $color[1], $color[2]);
         $this->SetFont($font, 'B', $size);
         $this->Write(0, $text, '', 0, $align, true, 0, false, false, 0);
 
-        if($backDefault) 
-            $this->ConfigDefault();
+        if($back_default) 
+            $this->configDefault();
     }
 
-    public function CellImageBorder($img, $img_type, $txt, $h, $w, $x, $y, $font, $colorTxt = array(0, 0, 0)) {
+    public function cellImageBorder($img, $txt, $h, $w, $x, $y, $font, $colorTxt = array(0, 0, 0)) {
+        $img_type = ltrim(strstr($img, '.', false), '.');
+        
         $this->setCellPaddings(8, 5, 1, 1);
         $this->SetLineStyle(array('width' => 0.4, 'cap' => 'butt', 'join' => 'miter', 'dash' => 0, 'color' => array(0, 0, 0)));
         $this->SetFont($font, 'B', 16);
         $this->SetTextColor($colorTxt[0], $colorTxt[1], $colorTxt[2]);
-        $this->Image($img.'.'.$img_type, $x, $y, $h, $w, 'PNG', '', '', true, 300, '', false, false, 0, false, false, false);
+        $this->Image($img, $x, $y, $h, $w, $img_type, '', '', true, 300, '', false, false, 0, false, false, false);
         $this->RoundedRect($x, $y, $h, $w, 5.4, '1111');
         $this->MultiCell($h, $w, $txt, 0, 'C', 0, 1, $x-2, $y-2, true);
         $this->setCellPaddings(1, 1, 1, 1);
     }
 
-    public function PrintBgFullPage($bgImg, $bookMark = false, $txt = '', $level = 0, $page = '', $color = array(0,0,0)) {
+    public function printBgFullPage($bgImg, $bookMark = false, $txt = '', $level = 0, $page = '', $color = array(0,0,0)) {
         $this->AddPage();
         if($bookMark) 
             $this->Bookmark($txt, $level, 0, $page, 'B', $color);
@@ -61,35 +66,38 @@ class MYPDF extends TCPDF {
         $this->setPageMark();
     }
 
-    public function ParagraphItalic($text, $font, $size, $style, $color = array(0 ,0 ,0), $backDefault = true) {
+    public function customParagraph($text, $font, $size, $style, $color = array(0 ,0 ,0), $back_default = true) {
         $this->setCellHeightRatio(1);
+        $this->setCellPaddings(1,1,1,1);
         $this->SetTextColor($color[0], $color[1], $color[2]);
         $this->SetFont($font, $style, $size);
         $this->writeHTML($text, true, false, true, false, '');
 
-        if($backDefault) 
-            $this->ConfigDefault();
+        if($back_default) 
+            $this->configDefault();
     }
 
-    public function PrintPart($start, $end, $listTitle, $listContent, $fontTitle, $fontCotent) {
-        $this->setPrintFooter(true);
+    public function printPart($start, $end, $list_title, $list_content, $list_image_detail, $background_image, $font_title, $font_cotent) {
         $text = '';
         for ($i = $start; $i <= $end; $i++) {
+            $img_type = ltrim(strstr($list_image_detail[$i], '.', false), '.');
+            $text = '<p style="text-align: justify;">'.$list_content[$i].'</p>';
+            
             $this->AddPage();
-            $this->Bookmark($listTitle[$i], 1, 0, '', '');
-            $text = '<p style="text-align: justify;">'.$listContent[$i].'</p>';
-
-            $this->Image('image/arrow-head.png', 16, 13, strlen($listTitle[$i]) * 2.5  + 30, 25, 'png', '', '', true);
+            $this->setPrintFooter(true);
+            $this->Bookmark($list_title[$i], 1, 0, '', '');
+            $this->Image($background_image, 49, 55, 119.1, 152.9, 'JPG', '', '', true, 300, '', false, false, 0, false, false, true);
+            $this->Image('image/arrow-head.png', 16, 13, strlen($list_title[$i]) * 2.5  + 30, 25, 'png', '', '', true);
             $this->setCellPaddings(5, 1, 1, 1);
-            $this->CustomTitle($listTitle[$i], $fontTitle, 18, 'L', array(255, 255, 255), false);
+            $this->customTitle($list_title[$i], $font_title, 18, 'L', array(255, 255, 255), false);
 
-            $this->Image('image/sobanmenh'.($i + 1).'.jpg', 0, 40, 220, '', 'JPG', '', '', true, 300, '', false, false, 0, false, false, false);
+            $this->Image($list_image_detail[$i], 0, 40, 220, '', $img_type, '', '', true, 300, '', false, false, 0, false, false, false);
             $this->Ln($this->getImageRBY()-21);
-            $this->ParagraphItalic($text, $fontCotent, 14, '', array(111,47,159), false);
+            $this->customParagraph($text, $font_cotent, 14, '', array(111,47,159), false);
             
             if ($i != $end) {
                 $this->AddPage();
-                $this->Image('image/background.jpg', 49, 55, 119.1, 152.9, 'JPG', '', '', true, 300, '', false, false, 0, false, false, true);
+                $this->Image($background_image, 49, 55, 119.1, 152.9, 'JPG', '', '', true, 300, '', false, false, 0, false, false, true);
             }
         }
     }
@@ -117,20 +125,17 @@ $pdf->SetMargins(25, 20, 18, true);
 $font = TCPDF_FONTS::addTTFfont('font/SVN-Arial/SVN-Arial 2.ttf');
 $font_italic = TCPDF_FONTS::addTTFfont('font/SVN-Arial/SVN-Arial 2 italic.ttf');
 $font_IB = TCPDF_FONTS::addTTFfont('font/SVN-Arial/SVN-Arial 2 bold italic.ttf');
-$bungee_shade = TCPDF_FONTS::addTTFfont('font/BungeeShade/BungeeShade-Regular.ttf');
+$font_title_header = TCPDF_FONTS::addTTFfont($font_header);
 $pdf->SetFont($font, '', 12);
 $pdf->setCellHeightRatio(1.4);
 // $pdf->SetTextColor();
 
 
 
-
-
-
 // ------------------------------- BEGIN PAGE 1 --------------------------------------
 // -----------------------------------------------------------------------------------
 $pdf->AddPage();
-$pdf->Image('image/background.jpg', 49, 55, 119.1, 152.9, 'JPG', '', '', true, 200, '', false, false, 0, false, false, true);
+$pdf->Image($background_image, 49, 55, 119.1, 152.9, 'JPG', '', '', true, 200, '', false, false, 0, false, false, true);
 $pdf->Image('image/ceo.jpg',  124, 15, 92.5, 92.5, 'JPG', '', '', true);
 
 
@@ -141,8 +146,8 @@ $regions = array(
 // set page regions, check also getPageRegions(), addPageRegion() and removePageRegion()
 $pdf->setPageRegions($regions);
 
-$pdf->CustomTitle("GIỚI THIỆU VỀ", $font, 23, 'C', array(88,12,109));
-$pdf->CustomTitle("NHÀ SÁNG LẬP", $font, 23, 'C', array(88,12,109));
+$pdf->customTitle("GIỚI THIỆU VỀ", $font, 23, 'C', array(88,12,109));
+$pdf->customTitle("NHÀ SÁNG LẬP", $font, 23, 'C', array(88,12,109));
 $pdf->Ln(5, false);
 
 $html = '
@@ -195,13 +200,13 @@ $pdf->writeHTML($html, true, false, true, false,'');
 // -----------------------------------------------------------------------------------
 
 $pdf->AddPage();
-$pdf->Image('image/background.jpg', 49, 55, 119.1, 152.9, 'JPG', '', '', true, 200, '', false, false, 0, false, false, true);
+$pdf->Image($background_image, 49, 55, 119.1, 152.9, 'JPG', '', '', true, 200, '', false, false, 0, false, false, true);
 $pdf->Image('image/vs-logo.jpg',  8, 8, 29.8, 28.5, 'JPG', '', '', true, 300, '', false, false, 1);
 $pdf->Image('image/numerology-logo.jpg',  164, 8, 45.1, 32.8, 'JPG', '', '', true);
 
 
-$pdf->CustomTitle("Ứng dụng", $font, 23, 'C', array(88,12,109));
-$pdf->CustomTitle("Numerology - Năng lượng số", $font, 23, 'C', array(88,12,109));
+$pdf->customTitle("Ứng dụng", $font, 23, 'C', array(88,12,109));
+$pdf->customTitle("Numerology - Năng lượng số", $font, 23, 'C', array(88,12,109));
 $pdf->Ln(5, false);
 
 
@@ -253,7 +258,7 @@ $pdf->writeHTML($html, true, false, true, false,'');
 // ------------------------------- BEGIN PAGE 3 ------------------------------------
 // ---------------------------------------------------------------------------------
 
-$pdf->PrintBgFullPage('image/book.jpg');
+$pdf->printBgFullPage('image/book.jpg');
 
 // ------------------------------- END PAGE 3 --------------------------------------
 // ---------------------------------------------------------------------------------
@@ -263,8 +268,6 @@ $pdf->PrintBgFullPage('image/book.jpg');
 
 // ------------------------------- BEGIN PAGE 4 ------------------------------------
 // --------------------------------  MUC LUC  --------------------------------------
-
-
 // ------------------------------- END PAGE 4 --------------------------------------
 // ---------------------------------------------------------------------------------
 
@@ -274,18 +277,20 @@ $pdf->PrintBgFullPage('image/book.jpg');
 // ------------------------------- BEGIN PAGE 5 ------------------------------------
 // ---------------------------------------------------------------------------------
 
+$pdf->setPrintFooter(true);
 $pdf->AddPage();
 $pdf->Bookmark('Lời mở đầu', 0, 0, '', 'B', array(0,0,0));
-
 $pdf->Image('image/foreword-img.png', 0, 190, 220, 69.3, 'PNG', '', '', true, 200, '', false, false, 0, false, false, false);
-$pdf->Image('image/background.jpg', 49, 55, 119.1, 152.9, 'JPG', '', '', true, 200, '', false, false, 0, false, false, true);
-$pdf->CustomTitle('LỜI MỞ ĐẦU', $bungee_shade, 30, 'C', array(88,12,109));
+$pdf->Image($background_image, 49, 55, 119.1, 152.9, 'JPG', '', '', true, 200, '', false, false, 0, false, false, true);
+$pdf->customTitle('LỜI MỞ ĐẦU', $font_title_header, 30, 'C', array(88,12,109));
 $pdf->Ln(5, false);
 
 
-$html = "<p>Bạn thân mến! Cảm ơn bạn đã tin tưởng và lựa chọn Chúng tôi  trở  thành 
-người dẫn lối cho bạn đi  tới đúng con đường của mình, cũng như tìm kiếm 
-con người  hoàn hảo nhất của mình.</p>";
+$html = "
+    <p>Bạn thân mến! Cảm ơn bạn đã tin tưởng và lựa chọn Chúng tôi  trở  thành 
+        người dẫn lối cho bạn đi  tới đúng con đường của mình, cũng như tìm kiếm 
+        con người  hoàn hảo nhất của mình.
+    </p>";
 $pdf->SetFont($font_italic,'',12);
 $pdf->writeHTML($html, true, false, true, false,'');
 
@@ -329,8 +334,8 @@ $pdf->writeHTML($html, true, false, true, false,'R');
 // ---------------------------------------------------------------------------------
 $pdf->AddPage();
 $pdf->Bookmark('Tổng quan về năng lượng số', 0, 0, '', '', array(0,0,0));
-$pdf->CustomTitle('TỔNG QUAN VỀ NĂNG', $bungee_shade, 30, 'C', array(88,12,109));
-$pdf->CustomTitle('LƯỢNG SỐ', $bungee_shade, 30, 'C', array(88,12,109));
+$pdf->customTitle('TỔNG QUAN VỀ NĂNG LƯỢNG SỐ', $font_title_header, 30, 'C', array(88,12,109));
+// $pdf->customTitle('LƯỢNG SỐ', $font_title_header, 30, 'C', array(88,12,109));
 $pdf->Image('image/numer-img-1.jpg', 0, 55, 215.9, 161.6, 'JPG', '', '', true, 200, '', false, false, 0, false, false, false);
 
 // ------------------------------- END PAGE 6 --------------------------------------
@@ -342,7 +347,7 @@ $pdf->Image('image/numer-img-1.jpg', 0, 55, 215.9, 161.6, 'JPG', '', '', true, 2
 // ---------------------------------------------------------------------------------
 
 $pdf->AddPage();
-$pdf->Image('image/background.jpg', 49, 55, 119.1, 152.9, 'JPG', '', '', true, 200, '', false, false, 0, false, false, true);
+$pdf->Image($background_image, 49, 55, 119.1, 152.9, 'JPG', '', '', true, 200, '', false, false, 0, false, false, true);
 
 $html = '
 <p style="text-align: justify;"><b style="font-size: 14px;">Năng lượng số là gì?</b>
@@ -401,20 +406,19 @@ $pdf->writeHTML($html, true, false, true, false,'');
 
 // ------------------------------- BEGIN PAGE 8 ------------------------------------
 // ---------------------------------------------------------------------------------
+
 $pdf->AddPage();
-$pdf->CustomTitle('PHẦN 1. BỘ SỐ BẢN MỆNH', $bungee_shade, 30, 'C', array(88,12,109));
+$pdf->customTitle('PHẦN 1. BỘ SỐ BẢN MỆNH', $font_title_header, 30, 'C', array(88,12,109));
+$pdf->Image($background_image, 49, 55, 119.1, 152.9, 'JPG', '', '', true, 200, '', false, false, 0, false, false, true);
 
-$pdf->Image('image/background.jpg', 49, 55, 119.1, 152.9, 'JPG', '', '', true, 200, '', false, false, 0, false, false, true);
-
-$pdf->CellImageBorder('image/bosonoiluc1', 'png', '1. SỐ ĐƯỜNG ĐỜI', 67.3, 40.6, 34, 40, $font);
-$pdf->CellImageBorder('image/bosonoiluc2', 'png', '2. SỐ THÁI ĐỘ', 67.3, 40.6, 115, 40, $font);
-$pdf->CellImageBorder('image/bosonoiluc3', 'png', '3. SỐ NGÀY SINH', 67.3, 40.6, 34, 94, $font);
-$pdf->CellImageBorder('image/bosonoiluc4', 'png', '4. SỐ VẬN MỆNH', 67.3, 40.6, 115, 94, $font, array(255, 255, 0));
-$pdf->CellImageBorder('image/bosonoiluc5', 'png', '5. SỐ LINH HỒN', 67.3, 40.6, 34, 149, $font, array(255, 255, 255));
-$pdf->CellImageBorder('image/bosonoiluc6', 'png', '6. SỐ NHÂN CÁCH', 67.3, 40.6, 115, 149, $font, array(255, 255, 0));
-$pdf->CellImageBorder('image/bosonoiluc7', 'png', '7. SỐ TRƯỞNG THÀNH', 67.3, 40.6, 34, 204, $font);
-$pdf->CellImageBorder('image/bosonoiluc8', 'png', '8. SỐ LẶP', 67.3, 40.6, 115, 204, $font, array(255, 255, 255));
-
+$pdf->cellImageBorder($list_image_overview[0], $list_title[0], 67.3, 40.6, 34, 40, $font);
+$pdf->cellImageBorder($list_image_overview[1], $list_title[1], 67.3, 40.6, 115, 40, $font);
+$pdf->cellImageBorder($list_image_overview[2], $list_title[2], 67.3, 40.6, 34, 94, $font);
+$pdf->cellImageBorder($list_image_overview[3], $list_title[3], 67.3, 40.6, 115, 94, $font, array(255, 255, 0));
+$pdf->cellImageBorder($list_image_overview[4], $list_title[4], 67.3, 40.6, 34, 149, $font, array(255, 255, 255));
+$pdf->cellImageBorder($list_image_overview[5], $list_title[5], 67.3, 40.6, 115, 149, $font, array(255, 255, 0));
+$pdf->cellImageBorder($list_image_overview[6], $list_title[6], 67.3, 40.6, 34, 204, $font);
+$pdf->cellImageBorder($list_image_overview[7], $list_title[7], 67.3, 40.6, 115, 204, $font, array(255, 255, 255));
 
 // ------------------------------- END PAGE 8 --------------------------------------
 // ---------------------------------------------------------------------------------
@@ -425,21 +429,17 @@ $pdf->CellImageBorder('image/bosonoiluc8', 'png', '8. SỐ LẶP', 67.3, 40.6, 1
 // ---------------------------------------------------------------------------------
 
 $pdf->AddPage();
-$pdf->CustomTitle('PHẦN 2. BỘ SỐ NỘI LỰC', $bungee_shade, 30, 'C', array(88,12,109));
+$pdf->customTitle('PHẦN 2. BỘ SỐ NỘI LỰC', $font_title_header, 30, 'C', array(88,12,109));
+$pdf->Image($background_image, 49, 55, 119.1, 152.9, 'JPG', '', '', true, 200, '', false, false, 0, false, false, true);
 
-$pdf->Image('image/background.jpg', 49, 55, 119.1, 152.9, 'JPG', '', '', true, 200, '', false, false, 0, false, false, true);
-
-$pdf->CellImageBorder('image/bosonoiluc9', 'png', '9. BIỂU ĐỒ NGÀY SINH', 67.3, 40.6, 34, 40, $font, array(255, 255, 0));
-$pdf->CellImageBorder('image/bosonoiluc10', 'png', '10. SỐ THIẾU', 67.3, 40.6, 115, 40, $font, array(255, 255, 255));
-$pdf->CellImageBorder('image/bosonoiluc11', 'png', '11. BIỂU ĐỒ VÀ ĐẶC ĐIỂM TÊN', 67.3, 40.6, 34, 94, $font, array(255, 0, 0));
-$pdf->CellImageBorder('image/bosonoiluc12', 'png', '12. SỐ ĐAM MÊ TIỀM ẨN', 67.3, 40.6, 115, 94, $font, array(255, 255, 255));
-$pdf->CellImageBorder('image/bosonoiluc13', 'png', '13. SỐ CÂN BẰNG', 67.3, 40.6, 34, 149, $font);
-$pdf->CellImageBorder('image/bosonoiluc14', 'png', '14. SỐ AN TOÀN', 67.3, 40.6, 115, 149, $font, array(255, 255, 255));
-$pdf->CellImageBorder('image/bosonoiluc15', 'png', '15. SỐ NGHIỆP QUẢ', 67.3, 40.6, 34, 204, $font);
-$pdf->CellImageBorder('image/bosonoiluc16', 'png', '16. PHẢN HỒI TIỀM THỨC', 67.3, 40.6, 115, 204, $font, array(255, 255, 0));
-
-
-
+$pdf->cellImageBorder($list_image_overview[8], $list_title[8], 67.3, 40.6, 34, 40, $font, array(255, 255, 0));
+$pdf->cellImageBorder($list_image_overview[9], $list_title[9], 67.3, 40.6, 115, 40, $font, array(255, 255, 255));
+$pdf->cellImageBorder($list_image_overview[10], $list_title[10], 67.3, 40.6, 34, 94, $font, array(255, 0, 0));
+$pdf->cellImageBorder($list_image_overview[11], $list_title[11], 67.3, 40.6, 115, 94, $font, array(255, 255, 255));
+$pdf->cellImageBorder($list_image_overview[12], $list_title[12], 67.3, 40.6, 34, 149, $font);
+$pdf->cellImageBorder($list_image_overview[13], $list_title[13], 67.3, 40.6, 115, 149, $font, array(255, 255, 255));
+$pdf->cellImageBorder($list_image_overview[14], $list_title[14], 67.3, 40.6, 34, 204, $font);
+$pdf->cellImageBorder($list_image_overview[15], $list_title[15], 67.3, 40.6, 115, 204, $font, array(255, 255, 0));
 
 // ------------------------------- END PAGE 9 --------------------------------------
 // ---------------------------------------------------------------------------------
@@ -450,18 +450,15 @@ $pdf->CellImageBorder('image/bosonoiluc16', 'png', '16. PHẢN HỒI TIỀM TH�
 // ---------------------------------------------------------------------------------
 
 $pdf->AddPage();
-$pdf->CustomTitle('PHẦN 3. THÔNG ĐIỆP', $bungee_shade, 30, 'C', array(88,12,109));
-$pdf->CustomTitle('CUỘC SỐNG', $bungee_shade, 30, 'C', array(88,12,109));
+$pdf->customTitle('PHẦN 3. THÔNG ĐIỆP CUỘC SỐNG', $font_title_header, 30, 'C', array(88,12,109));
+$pdf->Image($background_image, 49, 55, 119.1, 152.9, 'JPG', '', '', true, 300, '', false, false, 0, false, false, true);
 
-$pdf->Image('image/background.jpg', 49, 55, 119.1, 152.9, 'JPG', '', '', true, 300, '', false, false, 0, false, false, true);
+$pdf->cellImageBorder($list_image_overview[16], $list_title[16], 67.3, 40.6, 34, 70, $font, array(255, 255, 255));
+$pdf->cellImageBorder($list_image_overview[17], $list_title[17], 67.3, 40.6, 115, 70, $font, array(255, 255, 0));
+$pdf->cellImageBorder($list_image_overview[18], $list_title[18], 67.3, 40.6, 34, 125, $font);
+$pdf->cellImageBorder($list_image_overview[19], $list_title[19], 67.3, 40.6, 115, 125, $font, array(255, 255, 255));
 
-$pdf->CellImageBorder('image/bosonoiluc17', 'png', '17. HÀNH TINH', 67.3, 40.6, 34, 70, $font, array(255, 255, 255));
-$pdf->CellImageBorder('image/bosonoiluc18', 'png', '18. CUNG HOÀNG ĐẠO', 67.3, 40.6, 115, 70, $font, array(255, 255, 0));
-$pdf->CellImageBorder('image/bosonoiluc19', 'png', '19. CHỈ SỐ HẠNH PHÚC', 67.3, 40.6, 34, 125, $font);
-$pdf->CellImageBorder('image/bosonoiluc20', 'png', '20. TÌNH YÊU', 67.3, 40.6, 115, 125, $font, array(255, 255, 255));
-
-
-// ------------------------------- END PAGE 10 --------------------------------------
+// ------------------------------ END PAGE 10 --------------------------------------
 // ---------------------------------------------------------------------------------
 
 
@@ -469,228 +466,21 @@ $pdf->CellImageBorder('image/bosonoiluc20', 'png', '20. TÌNH YÊU', 67.3, 40.6,
 // ---------------------------------------------------------------------------------
 
 $pdf->AddPage();
-$pdf->CustomTitle('PHẦN 4. HÀNH TRÌNH', $bungee_shade, 30, 'C', array(88,12,109));
-$pdf->CustomTitle('CUỘC ĐỜI', $bungee_shade, 30, 'C', array(88,12,109));
-$pdf->Image('image/background.jpg', 49, 55, 119.1, 152.9, 'JPG', '', '', true, 300, '', false, false, 0, false, false, true);
+$pdf->customTitle('PHẦN 4. HÀNH TRÌNH CUỘC ĐỜI', $font_title_header, 30, 'C', array(88,12,109));
+$pdf->Image($background_image, 49, 55, 119.1, 152.9, 'JPG', '', '', true, 300, '', false, false, 0, false, false, true);
 
-$pdf->CellImageBorder('image/bosonoiluc21', 'png', '21. 3 GIAI ĐOẠN ĐƯỜNG ĐỜI', 67.3, 40.6, 5, 70, $font);
-$pdf->CellImageBorder('image/bosonoiluc22', 'png', '22. CÁC NĂM MỐC QUAN TRỌNG', 67.3, 40.6, 75, 70, $font);
-$pdf->CellImageBorder('image/bosonoiluc23', 'png', '23. NĂM NỔI BẬT', 67.3, 40.6, 145, 70, $font, array(255, 255, 0));
-$pdf->CellImageBorder('image/bosonoiluc24', 'png', '24. 4 ĐỈNH CAO', 67.3, 40.6, 5, 125, $font);
-$pdf->CellImageBorder('image/bosonoiluc25', 'png', '25. 4 THÁCH THỨC', 67.3, 40.6, 75, 125, $font);
-$pdf->CellImageBorder('image/bosonoiluc26', 'png', '26. NĂM THẾ GIỚI', 67.3, 40.6, 145, 125, $font, array(255, 255, 255));
-$pdf->CellImageBorder('image/bosonoiluc27', 'png', '27. NĂM CÁ NHÂN', 67.3, 40.6, 5, 180, $font, array(255, 255, 255));
-$pdf->CellImageBorder('image/bosonoiluc28', 'png', '28. THÁNG CÁ NHÂN', 67.3, 40.6, 75, 180, $font);
-$pdf->CellImageBorder('image/bosonoiluc29', 'png', '29. NGÀY CÁ NHÂN', 67.3, 40.6, 145, 180, $font);
-
+$pdf->cellImageBorder($list_image_overview[20], $list_image_overview[20], 67.3, 40.6, 5, 70, $font);
+$pdf->cellImageBorder($list_image_overview[21], $list_image_overview[21], 67.3, 40.6, 75, 70, $font);
+$pdf->cellImageBorder($list_image_overview[22], $list_image_overview[22], 67.3, 40.6, 145, 70, $font, array(255, 255, 0));
+$pdf->cellImageBorder($list_image_overview[23], $list_image_overview[23], 67.3, 40.6, 5, 125, $font);
+$pdf->cellImageBorder($list_image_overview[24], $list_image_overview[24], 67.3, 40.6, 75, 125, $font);
+$pdf->cellImageBorder($list_image_overview[25], $list_image_overview[25], 67.3, 40.6, 145, 125, $font, array(255, 255, 255));
+$pdf->cellImageBorder($list_image_overview[26], $list_image_overview[26], 67.3, 40.6, 5, 180, $font, array(255, 255, 255));
+$pdf->cellImageBorder($list_image_overview[27], $list_image_overview[27], 67.3, 40.6, 75, 180, $font);
+$pdf->cellImageBorder($list_image_overview[28], $list_image_overview[28], 67.3, 40.6, 145, 180, $font);
 
 // ------------------------------- END PAGE 11 -------------------------------------
 // ---------------------------------------------------------------------------------
-
-
-
-$title = array(
-    "1. Số Đường Đời",
-    "2. Số Thái Độ",
-    "3. Số Ngày Sinh",
-    "4. Số Vận Mệnh",
-    "5. Số Linh Hồn",
-    "6. Số Nhân Cách",
-    "7. Số Trưởng Thành",
-    "8. Số Lặp",
-    "9. Biểu Đồ Ngày Sinh",
-    "10. Số Thiếu",
-    "11. Biểu Đồ Đặc Điểm Tên",
-    "12. Số Đam Mê Tiềm Ẩn",
-    "13. Số Cân Bằng",
-    "14. Số An Toàn",
-    "15. Số Nghiệp Quả",
-    "16. Số Phản Hồi Tiềm Thức",
-    "17. Hành Tinh",
-    "18. Cung",
-    "19. Chỉ Số Hạnh Phúc",
-    "20. Tình Yêu",
-    "21. 3 Giai Đoạn Cuộc Đời",
-    "22. Các Giai Đoạn Quan Trọng",
-    "23. Năm Nổi Bật 6",
-    "24. 4 Đỉnh Cao Cuộc Đời",
-    "25. 4 Thách Thức Cuộc Đời",
-    "26. Năm Thế Giới 5",
-    "27. Năm Cá Nhân",
-    "28. Tháng Cá Nhân",
-    "29. Ngày Cá Nhân"
-);
-
-$list_txt_so_ban_menh = array(
-    "Con số đường đời được tính toán dựa trên ngày sinh dương lịch của chúng ta 
-    (giống như biểu đồ ngày sinh trong chiêm tinh), vì vậy chúng ta có thể coi 
-    con số đường đời như một loại dấu hiệu hoàng đạo của Năng lượng số. Những 
-    con số này nói lên giá trị cốt lõi, phương thức hoạt động và sứ mệnh tổng 
-    thể của chúng ta trong cuộc sống. Mỗi con số được liên kết với những phẩm 
-    chất, điểm mạnh và điểm yếu duy nhất - và chúng được cho là có ý nghĩa sâu 
-    sắc và có ảnh hưởng lớn đến các con đường của chúng ta trong cuộc sống.",
-    
-    "Số Thái độ là con số thể hiện cách bạn ứng xử, hành động với người khác. 
-    Nếu bạn không hài lòng với cách người khách nhìn nhận bạn, bạn có thể thay đổi 
-    thái độ nếu bạn muốn.",
-    
-    "Số Ngày sinh là một trong những con số Cốt lõi quan trọng, số Ngày sinh của bạn 
-    có thể tiết lộ những khả năng độc đáo và mạnh mẽ mà bạn sở hữu một cách tự nhiên 
-    - giống như một món quà bạn phải tặng cho thế giới.",
-    
-    "Con số định mệnh là con đường dẫn bạn đến định mệnh hay đích đến mà bạn hướng 
-    đến trong tương lai. Nó mang lại một cái nhìn bao quát về những cơ hội, thách 
-    thức và bài học mà bạn sẽ gặp phải trong cuộc đời này. Mặc dù bạn có thể thay 
-    đổi số Vận mệnh một phần nào đó bằng cách đổi tên khai sinh, nhưng nó luôn là 
-    nguồn năng lượng ẩn dưới bất kỳ thay đổi nào và sẽ tự bộc lộ ra trong cuộc đời bạn.",
-    
-    "Số Linh hồn của bạn tiết lộ những gì thúc đẩy bạn và những gì bạn cần để nuôi dưỡng 
-    tâm hồn của mình. Nói cách khác, nó tiết lộ những gì trái tim bạn mong muốn và những 
-    gì Linh hồn của bạn thôi thúc bạn phải hoàn thành trong cuộc sống này để tạm bằng lòng.",
-    
-    "Số Nhân cách hay còn gọi là số bên ngoài không ảnh hưởng mạnh đến bạn như các số Cốt lõi khác. 
-    Nó đại diện cho 'bên ngoài bạn.' hoặc khía cạnh tính cách mà bạn lựa chọn để thể hiện cho người 
-    khác (chứ không phải là sự phản ánh bản chất bên trong thực sự của bạn).",
-    
-    "Số Trưởng thành chỉ ra tiềm năng tương lai của bạn và mục tiêu cuối cùng trong cuộc sống của bạn.
-    Nó cũng cho bạn biết cuộc sống của bạn đang chuẩn bị gì và mong đợi gì. Thú vị thay, Số Trưởng 
-    thành không có tác dụng cho đến khi ' trưởng thành ' hoặc tuổi trung niên, khi bạn đã hiểu rõ 
-    hơn về bản thân và con đường của bạn. Mỗi người trưởng thành ở những tốc độ khác nhau, độ tuổi 
-    khác nhau, nhưng nó thường bắt đầu từ 35- 45 và hoạt động mạnh vào năm 50 tuổi. Mỗi năm trôi qua, 
-    năng  lượng của số trưởng thành sẽ tăng mạnh và trưởng thành. Nói cách khác, bạn càng nhiều tuổi, 
-    thì Số Trưởng thành của bạn càng ảnh hưởng mạnh vào tính cách và cuộc sống của bạn. Bạn nên ghi nhớ 
-    con số này khi đưa ra các mục tiêu và quyết định dài hạn.",
-    
-    "Mỗi con số đều mang năng lượng số học. Nhưng nếu chúng xuất hiện từ 2 lần trở lên, tức là chúng 
-    có độ rung cao hơn các số xuất hiện 1 lần. Khi bạn thấy bất kỳ số nào được lặp lại, nó sẽ khuếch 
-    đại ý nghĩa của số đó. Càng nhiều số lặp lại trong một chuỗi, thông điệp càng mạnh mẽ.",
-    
-    "Khi bạn muốn mở một cánh cửa, bạn cần có chìa khóa. Đối với hầu hết mọi người, 
-    nội tâm ẩn sau một cánh cửa khóa chặt, hiếm khi họ phát hiện ra mình thực sự là 
-    ai hoặc phát triển tiềm năng cuối cùng của mình. Chìa khóa để khám phá con người 
-    bên trong thông qua thuật số là Biểu đồ sinh. Mục đích chính của Biểu đồ sinh là 
-    để tiết lộ trong nháy mắt tổng thể về điểm mạnh và điểm yếu của mỗi người.",
-    
-    "Số còn thiếu thường chỉ ra những đặc điểm, đặc tính còn thiếu - mong muốn hoặc 
-    không mong muốn - từ tính cách của một người. Chúng cũng chỉ ra một số bài học 
-    quan trọng mà một người cần học hoặc có thể là một số thói quen quan trọng mà một 
-    người cần trau dồi để có một cuộc sống cân bằng hơn. Khi bạn hiểu được những thiếu 
-    sót của người khác, Bạn cần phải khoan dung, thấu hiểu và ủng hộ họ. Nếu có thể, 
-    bạn hãy giúp họ phát triển phẩm chất còn thiếu của họ.",
-    
-    "Các chữ cái và các ký tự số tương ứng với tên của chúng có thể được nhóm lại 
-    thành bốn loại dựa trên “Các mặt phẳng biểu hiện”",
-    
-    "Số đam mê tiềm ẩn cho bạn biết về một khả năng hoặc tài năng cụ thể mà bạn có, 
-    đó là chìa khóa cho toàn bộ bản chất của bạn và có thể giúp bạn hiểu mục đích cuộc 
-    sống của mình.",
-    
-    "Số Cân bằng cung cấp cho bạn hướng dẫn tốt nhất để đối phó với các tình huống 
-    khó khăn hoặc khi bị đe dọa.",
-    
-    "Số an toàn cho bạn biết bạn có những gì bên trong để thành công cả về cá nhân 
-    và nghề nghiệp, bất kể điều gì xảy ra theo cách của bạn. Ngay cả trong trường 
-    hợp xấu nhất, Số an toàn sẽ là điểm mấu chổ của bạn.",
-    
-    "Một trong những lý do tại sao bạn được xuất hiện trong cuộc sống này là để học 
-    cách làm chủ một số điểm yếu được nhận từ kiếp trước. Số nghiệp chướng của bạn 
-    cho biết những điểm yếu đó là gì, cùng với các lĩnh vực cụ thể cần phát triển 
-    và phải được giải quyết trong cuộc sống này. Một số nhà Năng lượng số tin rằng 
-    số nghiệp chướng chỉ ra một con số hoặc năng lượng mà bạn chưa từng có trong kiếp 
-    trước và do đó cần phải phát triển trong kiếp này. Và nó sẽ liên tục xuất hiện 
-    trong suốt cuộc đời bạn.",
-    
-    "Số phản hồi tiềm thức cho biết cách bạn hành động hoặc phản ứng theo bản năng 
-    trong thời điểm khẩn cấp hoặc khủng hoảng.",
-    
-    "Mỗi số được liên kết với một hành tinh. Hành tinh của bạn sẽ cho bạn biết rõ 
-    hơn các đặc điểm của mình, đồng thời tìm hiểu cách bạn có thể làm cho vị trí 
-    hành tinh của mình mạnh mẽ hơn",
-    
-    "Trên thực tế, dấu hiệu chiêm tinh có ảnh hưởng đáng kể đến cách mọi người 
-    thể hiện bản thân thông qua các con số của họ. Ví dụ, Đường đời 1 của Bạch 
-    Dương mạnh mẽ hơn, can đảm hơn và tiên phong hơn và do đó sẽ có xu hướng lãnh 
-    đạo mạnh mẽ hơn so với Số Đường đời 1 của Cự Giải nhạy cảm và cảm thông.
-    Ngay cả một sự hiểu biết cơ bản về từng dấu hiệu chiêm tinh sẽ giúp bạn 
-    trở thành một nhà phân tích các con số tốt hơn.",
-    
-    "Những điều có thể làm trong cuộc sống khiến bạn cảm thấy hạnh phúc. 
-    Đó có thể là sứ mệnh bạn đang theo đuổi. Hay có thể là điều linh hồn 
-    bạn vẫn đang khao khát thực hiện. Cũng có thể đơn giản đó là nhân cách 
-    bạn vẫn hay thể hiện ra cho mọi người thấy.
-    Dù là điều gì, hãy là chính bạn, hãy làm những điều bạn yêu thích để 
-    bản thân được hạnh phúc và khiến cuộc sống trở nên ý nghĩa hơn.",
-    
-    "Bạn là người thế nào trong tình yêu? Bạn nên làm gì để phát triển 
-    mối quan hệ của mình theo hướng tốt đẹp?
-    Trong một mối quan hệ, thể hiện tính cách thật sự của bản thân là 
-    điều tốt, nhưng có những tính cách không thể dung hòa giữa hai người. 
-    Lúc này bạn hãy gạt bỏ bớt cái tôi, thay đổi những thói quen tiêu cực 
-    và cảm thông cho nhau. Cùng nhau dắt tay đi đến điểm cuối cùng của 
-    con đường nhé.",
-    
-    "Cuộc đời mỗi người chia thành 3 giai đoạn khác nhau:
-    đoạn giữa, các tài năng sáng tạo và tính cá nhân của 
-    chúng ta dần dần xuất hiện. Tại giai đoạn này, đầu và 
-    giữa những năm 30 tuổi- thể hiện một cuộc đấu tranh để tìm 
-    vị trí của chúng ta trong xã hội, cuối năm 30, 40 tuổi và 
-    đầu những năm 50 tuổi, chúng ta làm chủ được bản thân và ảnh 
-    hưởng nhiều hơn đến môi trường. Chu kỳ cuối cùng, có thể đại diện 
-    cho sự nở hoa   bên trong chúng ta, đó là khi bản chất thực sự của chúng 
-    ta cuối cùng đã thành hiện thực. Đây cũng là giai đoạn một người có mức
-    độ thể hiện bản thân và quyền lực lớn nhất.",
-    
-    "Các năm Mốc là những năm được xác định chính xác trong cuộc đời của bạn 
-    có ý nghĩa quan trọng vì một số lý do. Có lẽ bạn đã bắt đầu hoặc tốt nghiệp 
-    ra trường, gặp tình yêu đầu tiên của mình, hoặc chuyển đến một ngôi nhà hoặc 
-    thành phố mới. Có thể bạn đã bắt đầu một công việc mới, được thăng chức, thành 
-    lập công ty riêng, nghỉ phép hoặc thậm chí nghỉ hưu. Những con số sẽ cung cấp 
-    cho bạn một bức tranh toàn cảnh của các sự kiện thích hợp xảy ra trong khoảng 
-    thời gian giữa các Năm Mốc.",
-    
-    "Là nhận thức của bạn về sự tiến bộ hoặc đường đua trong cuộc sống của bạn. 
-    Khi bạn tiến tới mục tiêu của mình, bạn sẽ nhận thấy nhận thức về những 
-    tiến bộ trong sự nghiệp và cuộc sống cá nhân của bạn ngày càng tăng.",
-    
-    "Mỗi người trong cuộc đời sẽ có 4 Đỉnh cao. Mỗi đỉnh mang những giá trị 
-    riêng, giúp chúng ta trưởng thành lên một bậc. Và sau khi kết thúc chu kỳ, 
-    chúng ta sẽ sống cuộc đời viên mãn nhờ vào những giá trị trước đó. Ảnh hường 
-    của mỗi Đỉnh cao kéo dài từ năm Cá nhân số 8, và giảm dần từ năm Cá nhân số 3. 
-    Nên bạn cần biết để có sự chuẩn bị từ năm Cá nhân số 1. Nếu không đến năm Đỉnh, 
-    bạn không nhận được món quà nào cả.",
-    
-    "Tất cả chúng ta đều được sinh ra với những điểm yếu và điểm mạnh nhất định. 
-    Năng lượng số xem cuộc sống là một quá trình học hỏi về bản thân không bao 
-    giờ kết thúc. Sự học hỏi không ngừng này giúp chúng ta nhận ra tiềm năng 
-    của mình và biến điểm yếu thành điểm mạnh. Để làm được điều này, chúng ta 
-    cần sẵn sàng đối mặt với những điểm yếu đó và có ý thức cải thiện. Có 4 thách 
-    thức mà tất cả chúng ta phải đối mặt trong suốt cuộc đời của mình. 
-    Đôi khi nó có thể là cùng một Thử thách lặp lại tại những thời điểm khác nhau. 
-    Tuy nhiên, chúng hiện diện và tồn tại để dạy chúng ta những bài học cuộc sống cụ thể.",
-    
-    "Có những năng lượng số học phổ quát ảnh hưởng đến toàn bộ thế giới. Chúng cung 
-    cấp một động lực cho một số loạt sự kiện và hoàn cảnh nhất định xảy ra. Tương tự 
-    như biểu đồ số học cá nhân, năng lượng vũ trụ hoặc thế giới thay đổi hàng năm. Đây 
-    là xu hướng cho toàn thế giới mỗi năm, không phải xu hướng cá nhân.",
-    
-    "Cuộc đời mỗi người đi theo chu kì 9 năm một lần, bắt đầu từ năm cá nhân số 1 
-    đến năm cá nhân số 9. Mỗi lần kết thúc một chu kì, chúng ta sẽ dần nhận thức 
-    nhiều hơn và trưởng thành hơn. Nổi bật là 4 chu kì trong 36 năm với 4 đỉnh cao 
-    cũng là những thành tựu mà bạn CÓ THỂ đạt được.
-    Tuy nhiên, để thật sự gặt hái được thành tựu ở những đỉnh cao đó, từng năm Cá nhân 
-    chính là nền tảng, là quá trình từng bước dẫn lối cho bạn đi đến đỉnh cao của cuộc đời.",
-    
-    "Mỗi người trong một thời gian sẽ chịu ảnh hưởng của nhiều con số với nhau. 
-    Ví dụ trong một tháng, không chỉ là số ngày cá nhân, số tháng cá nhân, 
-    và tháng trong năm cá nhân. Việc các con số kết hợp với nhau khiến cho 
-    cuộc sống của bạn cũng trở nên thú vị đa màu sắc hơn.",
-    
-    "Bạn có bao giờ từng thức dậy và không biết hôm nay mình cần phải làm gì 
-    chưa? Đừng lo lắng, chỉ cần để bản thân xuôi theo dòng chảy của từng con 
-    số. Việc bạn làm trong mỗi ngày, dù là nhỏ nhưng mang lại ảnh hưởng lớn, 
-    và bạn sẽ nhìn thấy thành quả rõ rệt sau này."
-    
-);
 
 
 
@@ -698,47 +488,68 @@ $list_txt_so_ban_menh = array(
 // ---------------------------------------------------------------------------------
 
 // Phần 1 Bộ số bản mệnh
-$pdf->PrintBgFullPage('image/phan1.jpg', true, 'Phần 1. Bộ số bản mệnh');
-$pdf->PrintPart(0, 7, $title, $list_txt_so_ban_menh, $font, $font_IB);
+$pdf->printBgFullPage('image/image_chapter/phan1.jpg', true, 'Phần 1. Bộ số bản mệnh');
+$pdf->printPart(0, 7, $list_title, $list_txt_so_ban_menh, $list_image_detail, $background_image, $font, $font_IB);
 
 // Phần 2 Bộ số nội lực
-$pdf->PrintBgFullPage('image/phan2.jpg', true, 'Phần 2. Bộ số nội lực');
-$pdf->PrintPart(8, 15, $title, $list_txt_so_ban_menh, $font, $font_IB);
+$pdf->printBgFullPage('image/image_chapter/phan2.jpg', true, 'Phần 2. Bộ số nội lực');
+$pdf->printPart(8, 15, $list_title, $list_txt_so_ban_menh, $list_image_detail, $background_image, $font, $font_IB);
 
 // Phần 3 Thông điệp cuộc sống
-$pdf->PrintBgFullPage('image/phan3.png', true, 'Phần 3. Thông điệp cuộc sống');
-$pdf->PrintPart(16, 19, $title, $list_txt_so_ban_menh, $font, $font_IB);
+$pdf->printBgFullPage('image/image_chapter/phan3.jpg', true, 'Phần 3. Thông điệp cuộc sống');
+$pdf->printPart(16, 19, $list_title, $list_txt_so_ban_menh, $list_image_detail, $background_image, $font, $font_IB);
 
 // Phần 4 Hành trình cuộc đời
-$pdf->PrintBgFullPage('image/phan4.png', true, 'Phần 4. Hành trình cuộc đời');
-$pdf->PrintPart(20, 28, $title, $list_txt_so_ban_menh, $font, $font_IB);
+$pdf->printBgFullPage('image/image_chapter/phan4.png', true, 'Phần 4. Hành trình cuộc đời');
+$pdf->Ln(120);
+$html = '
+    <p style="text-align: justify">Sau khi giúp bạn thấu hiểu bạn thân từ những điểm mạnh, điểm yếu, tiềm 
+        năng ẩn sâu bên trong hay những điều bạn cần bù đắp để hoàn thiện bản 
+        thân. Chúng tôi sẽ giúp bạn nhìn thấy toàn cảnh bức tranh cuộc đời bạn 
+        từ lúc sinh ra cho đến khi kết thúc cuộc đời. Đó chính là con đường được 
+        định sẵn cho riêng bạn. Đi trên con đường đó hay không còn phụ thuộc 
+        vào nhận thức và hành động của bạn. Nhưng nếu bạn đi sai hướng, bạn sẽ 
+        cảm thấy chênh vênh và khó khăn trên đường đời. Nếu bạn biết được 
+        điều gì đang chuẩn bị đến với mình, bạn sẽ có sự chuẩn bị và đón nhận 
+        điều đó tốt hơn. Trên con đường đó sẽ có những thách thức, những vấp 
+        ngã, nhưng tất cả đều là những bài học dạy bạn điều gì đó, những 
+        chướng ngại mà Vũ trụ mang đến cho bạn. Nhưng tất nhiên, khi bạn vượt 
+        qua bài kiểm tra đó, bạn sẽ nhận được những phần thưởng xứng đáng 
+        bởi sự nỗ lực và hi sinh của mình. 
+        <br/>
+        <br/>
+        Hãy để năng lượng của các con số dẫn lối cho bạn. Nhưng đừng để bản 
+        thân bị cuốn theo dòng đó mà hãy tự làm chủ bản thân mình.
+    </p>';
+$pdf->customParagraph($html, $font, 14, 'B', array(255,255,255));
+
+$pdf->printPart(20, 28, $list_title, $list_txt_so_ban_menh, $list_image_detail, $background_image, $font, $font_IB);
 
 // ------------------------------- END PAGE 12 - 70 --------------------------------
 // ---------------------------------------------------------------------------------
 
 // Lời kết
 $pdf->AddPage();
-$pdf->CustomTitle('LỜI KẾT', $bungee_shade, 24, 'C', array(111, 47, 159));
-$pdf->Image('image/background.jpg', 49, 55, 119.1, 152.9, 'JPG', '', '', true, 300, '', false, false, 0, false, false, true);
+$pdf->customTitle('LỜI KẾT', $font_title_header, 24, 'C', array(111, 47, 159));
+$pdf->Image($background_image, 49, 55, 119.1, 152.9, 'JPG', '', '', true, 300, '', false, false, 0, false, false, true);
 $pdf->Ln(5);
 
 $html = '
-<p style="text-align:justify;">Mỗi con số đều ẩn chứa những nguồn năng lượng 
-và những sức mạnh riêng. Nhưng con số không tự kích hoạt năng lượng, mà chúng 
-sẽ được phát triển dựa vào nhận thức và hành động của chúng ta. Nếu bạn không 
-kích hoạt chúng, các con số sẽ trở nên vô nghĩa. Chúng xuất hiện trong cuộc đời 
-bạn theo từng giai đoạn, hay xuyên suốt hành trình đường đời của bạn. Thậm chí 
-các con số có thể mang lại những món quà nho nhỏ ở mỗi năm, hay những thành tựu 
-to lớn ở những năm nổi bật và đỉnh cao của cuộc đời bạn. Tuy nhiên, xin bạn hãy 
-nhớ rằng, Vũ trụ đối xử công bằng với tất cả mọi người, và phần thưởng chỉ được 
-trao tặng cho những người xứng đáng. Mong bạn hãy luôn sống một cuộc đời tích cực, 
-vui vẻ, biết cân bằng giữa thế giới vật chất và tinh thần, biết sẻ chia vô điều kiện, 
-biết bao dung, và vị tha với người khác. Làm việc chăm chỉ, biết đứng dậy trước những 
-vấp ngã và thất bại, kiên trì, trung thực, rồi sẽ đến ngày bạn nhận được những thành 
-quả xứng đáng với điều mình đã hi sinh. Và nắm bắt những kiến thức, những bài học, 
-những niềm vui cả trên con đường chông gai của mình.
-</p>
-';
+    <p style="text-align:justify;">Mỗi con số đều ẩn chứa những nguồn năng lượng 
+        và những sức mạnh riêng. Nhưng con số không tự kích hoạt năng lượng, mà chúng 
+        sẽ được phát triển dựa vào nhận thức và hành động của chúng ta. Nếu bạn không 
+        kích hoạt chúng, các con số sẽ trở nên vô nghĩa. Chúng xuất hiện trong cuộc đời 
+        bạn theo từng giai đoạn, hay xuyên suốt hành trình đường đời của bạn. Thậm chí 
+        các con số có thể mang lại những món quà nho nhỏ ở mỗi năm, hay những thành tựu 
+        to lớn ở những năm nổi bật và đỉnh cao của cuộc đời bạn. Tuy nhiên, xin bạn hãy 
+        nhớ rằng, Vũ trụ đối xử công bằng với tất cả mọi người, và phần thưởng chỉ được 
+        trao tặng cho những người xứng đáng. Mong bạn hãy luôn sống một cuộc đời tích cực, 
+        vui vẻ, biết cân bằng giữa thế giới vật chất và tinh thần, biết sẻ chia vô điều kiện, 
+        biết bao dung, và vị tha với người khác. Làm việc chăm chỉ, biết đứng dậy trước những 
+        vấp ngã và thất bại, kiên trì, trung thực, rồi sẽ đến ngày bạn nhận được những thành 
+        quả xứng đáng với điều mình đã hi sinh. Và nắm bắt những kiến thức, những bài học, 
+        những niềm vui cả trên con đường chông gai của mình.
+    </p>';
 $pdf->writeHTML($html, true, false, true, false,'');
 
 $pdf->Ln(5);
@@ -754,14 +565,16 @@ $pdf->setPrintFooter(false);
 $pdf->SetAutoPageBreak(false, 0);
 $pdf->Image('image/vs-logo.jpg', 165, 20, 35, 35, 'JPG', '', '', true, 300, '', false, false, 0, false, false, true);
 $pdf->Image('image/foreword-img-2.png', 0, 170, 220, 69.3, 'PNG', '', '', true, 200, '', false, false, 0, false, false, false);
-$pdf->Image('image/background.jpg', 60, 55, 100, 130, 'JPG', '', '', true, 300, '', false, false, 0, false, false, true);
+$pdf->Image($background_image, 60, 55, 100, 130, 'JPG', '', '', true, 300, '', false, false, 0, false, false, true);
 $pdf->Image('image/ios-qr.png', 108, 245, 108, '', 'png', '', '', true, 300, '', false, false, 0, false, false, false);
 $pdf->Image('image/android-qr.png', 0, 245, 108, '', 'png', '', '', true, 300, '', false, false, 0, false, false, false);
 
-$html = '<p style="font-size: 16px"><b>Công ty Cổ phần Khởi Nghiệp Việt<br/>
-Email: vstartup@gmail.com<br/>
-numerologyleo@gmail.com<br/>
-SĐT: 0901.508.999 - 0867.880.577<b/></p>';
+$html = '
+    <p style="font-size: 16px"><b>Công ty Cổ phần Khởi Nghiệp Việt<br/>
+        Email: vstartup@gmail.com<br/>
+        numerologyleo@gmail.com<br/>
+        SĐT: 0901.508.999 - 0867.880.577<b/>
+    </p>';
 
 $pdf->writeHTML($html, true, false, true, false,'');
 $pdf->Ln(165);
@@ -772,21 +585,18 @@ $pdf->Write(0, $html, '', false, 'C', true);
 
 // --------------------------------------------------------------------------
 
-// --------------------------------- mục lục --------------------------------
+// --------------------------------- mục lục (Table of contents/TOC) --------------------------------
 $pdf->addTOCPage();
 $pdf->setPrintFooter(true);
-$pdf->Image('image/background.jpg', 49, 55, 119.1, 152.9, 'JPG', '', '', true, 200, '', false, false, 0, false, false, true);
-// write the TOC title
-$pdf->SetFont($bungee_shade, 'B', 22);
-$pdf->SetTextColor(array(88,12,109));
-$pdf->MultiCell(0, 0, 'MỤC LỤC', 0, 'C', 0, 1, '', '', true, 0);
+$pdf->setCellHeightRatio(1);
+$pdf->Image($background_image, 49, 55, 119.1, 152.9, 'JPG', '', '', true, 200, '', false, false, 0, false, false, true);
 
+// write the TOC title
+$pdf->customTitle('MỤC LỤC', $font_title_header, 24, 'C', array(88,12,109));
 $pdf->SetFont($font, '', 12);
 
-// add a simple Table Of Content at first page
-// (check the example n. 59 for the HTML version)
+// add a simple Table Of Content at custom page 4
 $pdf->addTOC(4, 'courier', '.', 'INDEX', 'B', array(128,0,0));
-
 // end of TOC page
 $pdf->endTOCPage();
 
