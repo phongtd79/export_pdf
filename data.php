@@ -268,4 +268,83 @@
         và bạn sẽ nhìn thấy thành quả rõ rệt sau này."
         
     );
+
+    $table_date_of_birth = '
+        <table style="text-align: center;" cellspacing="0" cellpadding="5" border="0.5">
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        </table>
+    ';
+
+    $table_name = '
+        <table style="text-align: center;" cellspacing="0" cellpadding="8" border="0.5">
+            <tr>
+                <th colspan="2" width="40%">Loại</th>
+                <th colspan="6" width="60%">Đặc điểm</th>    
+            </tr>
+            <tr>
+                <td>Thể chất</td>
+                <td style="background-color: #FF8C00;"></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Tinh thần</td>
+                <td style="background-color: #FF8C00;"></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Cảm xúc</td>
+                <td style="background-color: #FF8C00;"></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Trực giác</td>
+                <td style="background-color: #FF8C00;"></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Tổng</td>
+                <td style="background-color: #FF8C00;"></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </table>
+    ';
 ?>

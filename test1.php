@@ -43,38 +43,6 @@ class MYPDF extends TCPDF {
         $this->SetTextColor(0, 0, 0);
         $this->SetFont($fontDefault, '', 12);
     }
-
-    public function arrow($x0, $y0, $x1, $y1, $headStyle = 0, $armSize=5, $armAngle=15)
-    {
-    //setting default values
-    $armSize = ($armSize) ? (float) $armSize : 5;
-    $armAngle = ($armAngle) ? (float) $armAngle : 15;
-
-    //main arrow line / shaft
-    $this->Line($x0, $y0, $x1, $y1);
-
-    //getting arrow direction angle
-    $dirAngle = rad2deg(atan2(($y0 - $y1), ($x0 - $x1)));
-
-    //0 angle is when both arms go along X axis. angle grows clockwise.
-    //left arrowhead arm tip
-    $x2L = $x1 + $armSize * cos( deg2rad($dirAngle+$armAngle) );
-    $y2L = $y1 + $armSize * sin( deg2rad($dirAngle+$armAngle) );
-
-    //right arrowhead arm tip
-    $x2R = $x1 + $armSize * cos( deg2rad($dirAngle-$armAngle) );
-    $y2R = $y1 + $armSize * sin( deg2rad($dirAngle-$armAngle) );
-
-    if($headStyle > 0) //closed arrowhead
-        {$this->Polygon(array($x1, $y1, $x2L, $y2L, $x2R, $y2R), (($headStyle === 1) ? 'D' : 'DF'), array(), array());}
-    else //just arms
-        {
-        //left arm
-        $this->Line($x1, $y1, $x2L, $y2L);
-        //right arm
-        $this->Line($x1, $y1, $x2R, $y2R);
-        }
-    }
 }
 
 //make TCPDF object
@@ -99,7 +67,7 @@ $pdf->SetMargins(25, 20, 18, true);
 $font = TCPDF_FONTS::addTTFfont('font/SVN-Arial/SVN-Arial 2.ttf');
 $font_italic = TCPDF_FONTS::addTTFfont('font/SVN-Arial/SVN-Arial 2 italic.ttf');
 $font_IB = TCPDF_FONTS::addTTFfont('font/SVN-Arial/SVN-Arial 2 bold italic.ttf');
-$pdf->SetFont($font, '', 12);
+$pdf->SetFont($font, 'B', 14);
 $pdf->setCellHeightRatio(1.4);
 // $pdf->SetTextColor();
 
@@ -131,53 +99,143 @@ hưởng lớn đến các con đường của chúng ta trong cuộc sống</b>
 
 $serial = 0;
 
-for ($i = 1; $i <= 15; $i++) {
-    $pdf->AddPage();
+// for ($i = 1; $i <= 15; $i++) {
+//     $pdf->AddPage();
     
-    if ($i % 2 != 0) {
-        $pdf->CustomTitle($title[$serial], $font, 18);
-        $serial++;
-        $pdf->Image('image/sobanmenh'.$serial.'.jpg', 0, 40, 220, '', 'JPG', '', '', true, 300, '', false, false, 0, false, false, false);
-        $pdf->Ln($pdf->getImageRBY()-22);
-        $pdf->ParagraphItalic($text, $font_italic, 14, '', array(0,0,0));
+//     if ($i % 2 != 0) {
+//         $pdf->CustomTitle($title[$serial], $font, 18);
+//         $serial++;
+//         $pdf->Image('image/sobanmenh'.$serial.'.jpg', 0, 40, 220, '', 'JPG', '', '', true, 300, '', false, false, 0, false, false, false);
+//         $pdf->Ln($pdf->getImageRBY()-22);
+//         $pdf->ParagraphItalic($text, $font_italic, 14, '', array(0,0,0));
  
-        // $pdf->Image('image/background.jpg', 49, 55, 119.1, 152.9, 'JPG', '', '', true, 300, '', false, false, 0, false, false, true);
-    } else {
-        // $pdf->Image('image/background.jpg', 49, 55, 119.1, 152.9, 'JPG', '', '', true, 300, '', false, false, 0, false, false, true);
-    }   
-}
+//         // $pdf->Image('image/background.jpg', 49, 55, 119.1, 152.9, 'JPG', '', '', true, 300, '', false, false, 0, false, false, true);
+//     } else {
+//         // $pdf->Image('image/background.jpg', 49, 55, 119.1, 152.9, 'JPG', '', '', true, 300, '', false, false, 0, false, false, true);
+//     }   
+// }
 
 
 
+
+
+
+// $pdf->AddPage();
+// $pdf->Bookmark('Chapter 1', 0, 0, '', 'B', array(0,64,128));
+// $pdf->SetFont($font, '', 12);
+// $pdf->setPrintFooter(false);
+// $pdf->SetAutoPageBreak(false, 0);
+// $pdf->Image('image/vs-logo.jpg', 165, 20, 35, 35, 'JPG', '', '', true, 300, '', false, false, 0, false, false, true);
+// $pdf->Image('image/foreword-img-2.png', 0, 170, 220, 69.3, 'PNG', '', '', true, 200, '', false, false, 0, false, false, false);
+// $pdf->Image('image/background.jpg', 60, 55, 100, 130, 'JPG', '', '', true, 300, '', false, false, 0, false, false, true);
+// $pdf->Image('image/ios-qr.png', 108, 245, 108, '', 'png', '', '', true, 300, '', false, false, 0, false, false, false);
+// $pdf->Image('image/android-qr.png', 0, 245, 108, '', 'png', '', '', true, 300, '', false, false, 0, false, false, false);
+
+// $html = '<p style="font-size: 16px"><b>Công ty Cổ phần Khởi Nghiệp Việt<br/>
+// Email: vstartup@gmail.com<br/>
+// numerologyleo@gmail.com<br/>
+// SĐT: 0901.508.999 - 0867.880.577<b/></p>';
+
+// $pdf->writeHTML($html, true, false, true, false,'');
+// $pdf->Ln(165);
+
+// $html = 'Quét mã cài đặt app';
+// $pdf->SetFont($font, 'B', 28);
+// $pdf->Write(0, $html, '', false, 'C', true);
 
 
 
 $pdf->AddPage();
-$pdf->Bookmark('Chapter 1', 0, 0, '', 'B', array(0,64,128));
-$pdf->SetFont($font, '', 12);
-$pdf->setPrintFooter(false);
-$pdf->SetAutoPageBreak(false, 0);
-$pdf->Image('image/vs-logo.jpg', 165, 20, 35, 35, 'JPG', '', '', true, 300, '', false, false, 0, false, false, true);
-$pdf->Image('image/foreword-img-2.png', 0, 170, 220, 69.3, 'PNG', '', '', true, 200, '', false, false, 0, false, false, false);
-$pdf->Image('image/background.jpg', 60, 55, 100, 130, 'JPG', '', '', true, 300, '', false, false, 0, false, false, true);
-$pdf->Image('image/ios-qr.png', 108, 245, 108, '', 'png', '', '', true, 300, '', false, false, 0, false, false, false);
-$pdf->Image('image/android-qr.png', 0, 245, 108, '', 'png', '', '', true, 300, '', false, false, 0, false, false, false);
+                $tbl = <<<EOD
+                <h1>BIỂU ĐỒ NGÀY SINH</h1>
+                <table style="text-align: center;" cellspacing="0" cellpadding="5" border="0.5">
+                <tr>
+                <td >COL 1 - ROW 1</td>
+                <td >COL 2 - ROW 1</td>
+                <td >COL 3 - ROW 1</td>
+                </tr>
+                <tr>
+                <td >COL 1 - ROW 2</td>
+                <td >COL 2 - ROW 2</td>
+                <td >COL 3 - ROW 2</td>
+                </tr>
+                <tr>
+                <td >COL 1 - ROW 3</td>
+                <td >COL 2 - ROW 3</td>
+                <td >COL 3 - ROW 3</td>
+                </tr>
+                </table>
+                EOD;
+                $pdf->Image($background_image, 49, 55, 119.1, 152.9, 'JPG', '', '', true, 300, '', false, false, 0, false, false, true);
 
-$html = '<p style="font-size: 16px"><b>Công ty Cổ phần Khởi Nghiệp Việt<br/>
-Email: vstartup@gmail.com<br/>
-numerologyleo@gmail.com<br/>
-SĐT: 0901.508.999 - 0867.880.577<b/></p>';
-
-$pdf->writeHTML($html, true, false, true, false,'');
-$pdf->Ln(165);
-
-$html = 'Quét mã cài đặt app';
-$pdf->SetFont($font, 'B', 28);
-$pdf->Write(0, $html, '', false, 'C', true);
+$pdf->writeHTMLCell(100,50,20,0,$tbl,0,false, false, true, 'C');
+// $pdf->writeHTML($tbl, true, false, false, false, 'C');
 
 
+$pdf->AddPage();
+$html='<h1>BIỂU ĐỒ TÊN</h1>';
+$pdf->writeHTML($html, true, false, false, false, 'C');
+$tbl = <<<EOD
+<h1>BIỂU ĐỒ TÊN</h1>
+<table style="text-align: center;" width="100%" cellspacing="0" cellpadding="8" border="0.5">
+    <tr>
+        <th colspan="2" width="40%">Loại</th>
+        <th colspan="6" width="60%">Đặc điểm</th>    
+    </tr>
+    <tr>
+        <td>Thể chất</td>
+        <td style="background-color: #FF8C00;">&nbsp;</td>
+        <td >&nbsp;</td>
+        <td >&nbsp;</td>
+        <td >&nbsp;</td>
+        <td >&nbsp;</td>
+        <td >&nbsp;</td>
+        <td >&nbsp;</td>
+    </tr>
+    <tr>
+        <td >Tinh thần</td>
+        <td >&nbsp;</td>
+        <td >&nbsp;</td>
+        <td >&nbsp;</td>
+        <td >&nbsp;</td>
+        <td >&nbsp;</td>
+        <td >&nbsp;</td>
+        <td >&nbsp;</td>
+    </tr>
+    <tr>
+        <td >Cảm xúc</td>
+        <td >&nbsp;</td>
+        <td >&nbsp;</td>
+        <td >&nbsp;</td>
+        <td >&nbsp;</td>
+        <td >&nbsp;</td>
+        <td >&nbsp;</td>
+        <td >&nbsp;</td>
+    </tr>
+    <tr>
+        <td >Trực giác</td>
+        <td >&nbsp;</td>
+        <td >&nbsp;</td>
+        <td >&nbsp;</td>
+        <td >&nbsp;</td>
+        <td >&nbsp;</td>
+        <td >&nbsp;</td>
+        <td >&nbsp;</td>
+    </tr>
+    <tr>
+        <td >Tổng</td>
+        <td >&nbsp;</td>
+        <td >&nbsp;</td>
+        <td >&nbsp;</td>
+        <td >&nbsp;</td>
+        <td >&nbsp;</td>
+        <td >&nbsp;</td>
+        <td >&nbsp;</td>
+    </tr>
+</table>
+EOD;
 
-
+$pdf->writeHTML($tbl, true, false, false, false, 'C');
 
 
 
@@ -224,21 +282,21 @@ $pdf->Write(0, $html, '', false, 'C', true);
 // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
 
-$pdf->addTOCPage();
+// $pdf->addTOCPage();
 
-// write the TOC title
-$pdf->SetFont('times', 'B', 16);
-$pdf->MultiCell(0, 0, 'Table Of Content', 0, 'C', 0, 1, '', '', true, 0);
-$pdf->Ln();
+// // write the TOC title
+// $pdf->SetFont('times', 'B', 16);
+// $pdf->MultiCell(0, 0, 'Table Of Content', 0, 'C', 0, 1, '', '', true, 0);
+// $pdf->Ln();
 
-$pdf->SetFont('dejavusans', '', 12);
+// $pdf->SetFont('dejavusans', '', 12);
 
-// add a simple Table Of Content at first page
-// (check the example n. 59 for the HTML version)
-$pdf->addTOC(1, 'courier', '.', 'INDEX', 'B', array(128,0,0));
+// // add a simple Table Of Content at first page
+// // (check the example n. 59 for the HTML version)
+// $pdf->addTOC(1, 'courier', '.', 'INDEX', 'B', array(128,0,0));
 
-// end of TOC page
-$pdf->endTOCPage();
+// // end of TOC page
+// $pdf->endTOCPage();
 
 
 $pdf->Output();

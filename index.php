@@ -77,7 +77,16 @@ class MYPDF extends TCPDF {
             $this->configDefault();
     }
 
-    public function printPart($start, $end, $list_title, $list_content, $list_image_detail, $background_image, $font_title, $font_cotent) {
+    public function printTable($h='', $w='', $x='', $y='', $tbl, $title_table, $style_font = '') {
+        $font_default = TCPDF_FONTS::addTTFfont('font/SVN-Arial/SVN-Arial 2.ttf');
+        $this->SetTextColor(0, 0, 0);
+        $this->SetFont($font_default, $style_font, 12);
+        $title_table = '<h1>'.$title_table.'</h1>';
+        $this->writeHTML($title_table, true, false, false, false, 'C');
+        $this->writeHTMLCell($h, $w, $x, $y, $tbl, 0, false, false, true, 'C');
+    }
+
+    public function printPart($start, $end, $list_title, $list_content, $list_image_detail, $background_image, $font_title, $font_cotent, $tbl1='', $tbl2='') {
         $text = '';
         for ($i = $start; $i <= $end; $i++) {
             $img_type = ltrim(strstr($list_image_detail[$i], '.', false), '.');
@@ -94,8 +103,18 @@ class MYPDF extends TCPDF {
             $this->Image($list_image_detail[$i], 0, 40, 220, '', $img_type, '', '', true, 300, '', false, false, 0, false, false, false);
             $this->Ln($this->getImageRBY()-21);
             $this->customParagraph($text, $font_cotent, 14, '', array(111,47,159), false);
+
+            if ($i == 8 && $tbl1 != '') {
+                $this->AddPage();
+                // $this->Image($background_image, 49, 55, 119.1, 152.9, 'JPG', '', '', true, 300, '', false, false, 0, false, false, true);
+                $this->printTable(100, 50, 60, 35, $tbl1, 'BIỂU ĐỒ NGÀY SINH');
+            } elseif ($i == 10 && $tbl2 != '') {
+                $this->AddPage();
+                // $this->Image($background_image, 49, 55, 119.1, 152.9, 'JPG', '', '', true, 300, '', false, false, 0, false, false, true);
+                $this->printTable('', '', 20, 35, $tbl2, 'BIỂU ĐỒ TÊN', 'B');
+            }
             
-            if ($i != $end) {
+            elseif ($i != $end) {
                 $this->AddPage();
                 $this->Image($background_image, 49, 55, 119.1, 152.9, 'JPG', '', '', true, 300, '', false, false, 0, false, false, true);
             }
@@ -469,15 +488,15 @@ $pdf->AddPage();
 $pdf->customTitle('PHẦN 4. HÀNH TRÌNH CUỘC ĐỜI', $font_title_header, 30, 'C', array(88,12,109));
 $pdf->Image($background_image, 49, 55, 119.1, 152.9, 'JPG', '', '', true, 300, '', false, false, 0, false, false, true);
 
-$pdf->cellImageBorder($list_image_overview[20], $list_image_overview[20], 67.3, 40.6, 5, 70, $font);
-$pdf->cellImageBorder($list_image_overview[21], $list_image_overview[21], 67.3, 40.6, 75, 70, $font);
-$pdf->cellImageBorder($list_image_overview[22], $list_image_overview[22], 67.3, 40.6, 145, 70, $font, array(255, 255, 0));
-$pdf->cellImageBorder($list_image_overview[23], $list_image_overview[23], 67.3, 40.6, 5, 125, $font);
-$pdf->cellImageBorder($list_image_overview[24], $list_image_overview[24], 67.3, 40.6, 75, 125, $font);
-$pdf->cellImageBorder($list_image_overview[25], $list_image_overview[25], 67.3, 40.6, 145, 125, $font, array(255, 255, 255));
-$pdf->cellImageBorder($list_image_overview[26], $list_image_overview[26], 67.3, 40.6, 5, 180, $font, array(255, 255, 255));
-$pdf->cellImageBorder($list_image_overview[27], $list_image_overview[27], 67.3, 40.6, 75, 180, $font);
-$pdf->cellImageBorder($list_image_overview[28], $list_image_overview[28], 67.3, 40.6, 145, 180, $font);
+$pdf->cellImageBorder($list_image_overview[20], $list_title[20], 67.3, 40.6, 5, 70, $font);
+$pdf->cellImageBorder($list_image_overview[21], $list_title[21], 67.3, 40.6, 75, 70, $font);
+$pdf->cellImageBorder($list_image_overview[22], $list_title[22], 67.3, 40.6, 145, 70, $font, array(255, 255, 0));
+$pdf->cellImageBorder($list_image_overview[23], $list_title[23], 67.3, 40.6, 5, 125, $font);
+$pdf->cellImageBorder($list_image_overview[24], $list_title[24], 67.3, 40.6, 75, 125, $font);
+$pdf->cellImageBorder($list_image_overview[25], $list_title[25], 67.3, 40.6, 145, 125, $font, array(255, 255, 255));
+$pdf->cellImageBorder($list_image_overview[26], $list_title[26], 67.3, 40.6, 5, 180, $font, array(255, 255, 255));
+$pdf->cellImageBorder($list_image_overview[27], $list_title[27], 67.3, 40.6, 75, 180, $font);
+$pdf->cellImageBorder($list_image_overview[28], $list_title[28], 67.3, 40.6, 145, 180, $font);
 
 // ------------------------------- END PAGE 11 -------------------------------------
 // ---------------------------------------------------------------------------------
@@ -493,7 +512,7 @@ $pdf->printPart(0, 7, $list_title, $list_txt_so_ban_menh, $list_image_detail, $b
 
 // Phần 2 Bộ số nội lực
 $pdf->printBgFullPage('image/image_chapter/phan2.jpg', true, 'Phần 2. Bộ số nội lực');
-$pdf->printPart(8, 15, $list_title, $list_txt_so_ban_menh, $list_image_detail, $background_image, $font, $font_IB);
+$pdf->printPart(8, 15, $list_title, $list_txt_so_ban_menh, $list_image_detail, $background_image, $font, $font_IB, $table_date_of_birth, $table_name);
 
 // Phần 3 Thông điệp cuộc sống
 $pdf->printBgFullPage('image/image_chapter/phan3.jpg', true, 'Phần 3. Thông điệp cuộc sống');
